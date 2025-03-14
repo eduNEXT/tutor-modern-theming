@@ -1,5 +1,5 @@
-learning_slots = {
-    "logo_slot": """
+learner_dashboard_slots = {
+    "widget_sidebar_slot": """
         {
             op: PLUGIN_OPERATIONS.Hide,
             widgetId: 'default_contents',
@@ -7,9 +7,9 @@ learning_slots = {
         {
             op: PLUGIN_OPERATIONS.Insert,
             widget: {
-                id: 'custom_logo_component',
+                id: 'widget_sidebar_slot',
                 type: DIRECT_PLUGIN,
-                RenderWidget: SlotWidgetHeaderLogo,
+                RenderWidget: SlotWidgetLearnerDashboardSidebar,
             },
         }
     """,
@@ -29,4 +29,4 @@ learning_slots = {
     """,
 }
 
-default = learning_slots
+default = learner_dashboard_slots

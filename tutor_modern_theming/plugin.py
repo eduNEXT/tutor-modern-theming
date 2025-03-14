@@ -232,6 +232,7 @@ for path in glob(str(importlib_resources.files("tutor_modern_theming") / "patche
 #######################################
 # COMMANDS TUTOR MODERN THEMING
 #######################################
+
 hooks.Filters.ENV_PATCHES.add_items(
     [
         (
@@ -247,12 +248,12 @@ hooks.Filters.ENV_PATCHES.add_items(
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "mfe-env-config-runtime-definitions",
-        "const { SlotWidgetHeaderLogo } = require('./frontend-render-widgets/src');",
+        "const { SlotWidgetHeaderLogo, SlotWidgetFooter, SlotWidgetLearnerDashboardSidebar } = require('./frontend-render-widgets/src');",
     )
 )
 
 def load_all_plugin_slots():
-    """Carga todos los archivos .py en plugin-slots y los convierte a JSON."""
+    """Loads all .py files into plugin-slots and converts them to JSON."""
     slots = {}
     plugin_slots_dir = os.path.join(os.path.dirname(__file__), "plugin-slots")
 
@@ -261,9 +262,9 @@ def load_all_plugin_slots():
 
     for filename in os.listdir(plugin_slots_dir):
         if filename.endswith(".py"):
-            module_name = filename[:-3]  # Elimina la extensión .py
+            module_name = filename[:-3]  # Remove the .py extension
             try:
-                # Importa el archivo Python directamente
+                # Import the Python file directly
                 sys.path.append(plugin_slots_dir)
                 module = __import__(module_name)
                 slot_data = getattr(module, "default", None)
@@ -271,15 +272,15 @@ def load_all_plugin_slots():
                 if slot_data:
                     slots[module_name] = json.loads(json.dumps(slot_data))
                 else:
-                    print(f"Advertencia: {filename} no exporta un objeto por defecto.")
+                    print(f"Warning!: {filename} does not export an object by default.")
 
             except ImportError as e:
-                print(f"Error al importar {filename}: {e}")
+                print(f"Error importing {filename}: {e}")
             except json.JSONDecodeError as e:
-                print(f"Error al convertir {filename} a JSON: {e}")
+                print(f"Error casting {filename} to JSON: {e}")
 
         else:
-            print(f"Advertencia: {filename} no es un archivo .py válido.")
+            print(f"Warning!: {filename} is not a valid .py file.")
 
     for mfe in slots:
         for slot in slots[mfe]:
@@ -295,77 +296,3 @@ hooks.Filters.ENV_PATCHES.add_item(
 )
 
 load_all_plugin_slots()
-
-# PLUGIN_SLOTS.add_item(
-#         (
-#             "learner-dashboard",
-#             "footer_slot",
-#             """ 
-#             {
-#                 op: PLUGIN_OPERATIONS.Hide,
-#                 widgetId: 'default_contents',
-#             },
-#             {
-#                 op: PLUGIN_OPERATIONS.Insert,
-#                 widget: {
-#                     id: 'custom_footer',
-#                     type: DIRECT_PLUGIN,
-#                     RenderWidget: () => (
-#                         <h1 style={{textAlign: 'center'}}>{helloWorld}</h1>
-#                     )
-#                 },
-#             },
-#   """,
-#         ),
-#     )
-
-# PLUGIN_SLOTS.add_item(
-#         (
-#             "learner-dashboard",
-#             "widget_sidebar_slot",
-#             """
-#             {
-#                 op: PLUGIN_OPERATIONS.Insert,
-#                 widget: {
-#                     id: 'custom_sidebar_panel',
-#                     type: DIRECT_PLUGIN,
-#                     RenderWidget: () => (
-#                         <div>
-#                             <h3>
-#                             Sidebar Menu
-#                             </h3>
-#                             <p>
-#                             sidebar item #1
-#                             </p>
-#                             <p>
-#                             sidebar item #2
-#                             </p>
-#                             <p>
-#                             sidebar item #3
-#                             </p>
-#                         </div>
-#                     ),
-#                 },
-#             },
-#   """,
-#         ),
-#     )
-
-# mfe_hooks.PLUGIN_SLOTS.add_item(
-#     (
-#         "learning",
-#         "logo_slot",
-#         """
-#         {
-#             op: PLUGIN_OPERATIONS.Insert,   
-#             widget: {
-#                 id: 'custom_logo_component',
-#                 type: DIRECT_PLUGIN,
-#                 RenderWidget: () => (
-#                     <h1 style={{textAlign: 'center'}}>Modern Theming Logo</h1>
-#                 ),
-#             },
-#         },
-#         """,
-#     ),
-# )
