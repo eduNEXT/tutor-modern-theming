@@ -1,0 +1,2 @@
+recursive-include tutor_modern_theming/patches *
+recursive-include tutor_modern_theming/templates *
