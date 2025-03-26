@@ -241,15 +241,48 @@ hooks.Filters.ENV_PATCHES.add_items(
             RUN git clone https://github.com/eduNEXT/frontend-render-widgets.git
             RUN npm install ./frontend-render-widgets
             """,
-        )
+        ),
+        (
+            "mfe-env-config-runtime-definitions",
+            "const { SlotWidgetHeaderLogo, SlotWidgetFooter, SlotWidgetLearnerDashboardSidebar } = require('./frontend-render-widgets/src');",
+        ),
+        (
+            "mfe-lms-production-settings",
+"""
+MFE_CONFIG["PARAGON_THEME_URLS"] = {
+    "core": {
+        "url": "https://cdn.jsdelivr.net/npm/@edunext/modern-theming-alpha@1.0.0/dist/core.min.css"
+    },
+    "defaults": {
+        "light": "light"
+    },
+    "variants": {
+        "light": {
+            "url": "https://cdn.jsdelivr.net/npm/@edunext/modern-theming-alpha@1.0.0/dist/light.min.css"
+        }
+    }
+}
+"""
+        ),
+        (
+            "mfe-lms-development-settings",
+"""
+MFE_CONFIG["PARAGON_THEME_URLS"] = {
+    "core": {
+        "url": "https://cdn.jsdelivr.net/npm/@edunext/modern-theming-alpha@1.0.0/dist/core.min.css"
+    },
+    "defaults": {
+        "light": "light"
+    },
+    "variants": {
+        "light": {
+            "url": "https://cdn.jsdelivr.net/npm/@edunext/modern-theming-alpha@1.0.0/dist/light.min.css"
+        }
+    }
+}
+"""
+        ),
     ]
-)
-
-hooks.Filters.ENV_PATCHES.add_item(
-    (
-        "mfe-env-config-runtime-definitions",
-        "const { SlotWidgetHeaderLogo, SlotWidgetFooter, SlotWidgetLearnerDashboardSidebar } = require('./frontend-render-widgets/src');",
-    )
 )
 
 def load_all_plugin_slots():
