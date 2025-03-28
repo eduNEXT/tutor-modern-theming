@@ -1,4 +1,5 @@
 .. warning::
+
     This is an `alpha` or `pilot` version of the plugin. Expect possible changes and instability.
 
 Tutor Modern Theming
@@ -26,4 +27,5 @@ Installation
 To install `tutor-modern-theming`, follow these steps:
 
 .. code-block:: bash
+
     pip install git+https://github.com/eduNEXT/tutor-modern-theming.git
