@@ -6,6 +6,7 @@ from glob import glob
 import click
 import importlib_resources
 from tutor import hooks
+from tutor import utils as tutor_utils
 from tutormfe import hooks as mfe_hooks
 
 from .__about__ import __version__
@@ -207,12 +208,48 @@ for path in glob(str(importlib_resources.files("tutor_modern_theming") / "patche
 # group and then add it to CLI_COMMANDS:
 
 
-### @click.group()
-### def tutor-modern-theming() -> None:
-###     pass
+@click.command(name="enable-legacy-theme", help="Enable modern theme")
+def enable_legacy_theme() -> None:
+    THEMES = [{
+        "name": "modern-theming",
+        "repo": "git@github.com:eduNEXT/modern-theming.git",
+        "version": "main",
+    }]
+    context = click.get_current_context().obj
+    tutor_root = context.root
+
+    # We use `type: ignore` for the `tutor_conf` object
+    # because it comes from the Tutor framework.
+    # We are not handle type errors related to this object.
+    for theme in THEMES:  # type: ignore
+        if not isinstance(theme, dict):
+            raise click.ClickException(
+                "Expected 'theme' to be a dictionary, but got something else."
+            )
+
+        if not {"name", "repo", "version"}.issubset(theme.keys()):
+            raise click.ClickException(
+                f"{theme} is missing one or more required keys: "
+                "'name', 'repo', 'version'"
+            )
+
+        theme_path = f'{tutor_root}/env/build/openedx/themes/{theme["name"]}'
+        if os.path.isdir(theme_path):
+            subprocess.call(["rm", "-rf", theme_path])
+
+        theme_version = theme.get("version", "")
+        theme_repo = theme.get("repo", "")
+        tutor_utils.execute(
+            "git",
+            "clone",
+            "-b",
+            theme_version,
+            theme_repo,
+            theme_path,
+        )
 
 
-### hooks.Filters.CLI_COMMANDS.add_item(tutor-modern-theming)
+hooks.Filters.CLI_COMMANDS.add_item(enable_legacy_theme)
 
 
 # Then, you would add subcommands directly to the Click group, for example:
