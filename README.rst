@@ -1,20 +1,29 @@
-# tutor-modern-theming plugin for [Tutor](https://docs.tutor.edly.io)
+.. warning::
+    This is an `alpha` or `pilot` version of the plugin. Expect possible changes and instability.
 
-> [!WARNING]
-> This project is currently in Alpha/Pilot phase. This means it is under active development and may contain bugs, incomplete features, or significant changes in the future.
+Tutor Modern Theming
+====================
 
-Tutor modern theming by Edunext for Opendex
+Overview
+--------
 
+`tutor-modern-theming` is a Tutor plugin designed to enhance theming capabilities for OpenedX Micro-Frontends (MFEs).
+It integrates modern theming approaches, including design tokens and CSS runtime configurations, to ensure a consistent
+look and feel across MFEs and the legacy Open edX experience.
 
-## Installation
+Features
+--------
 
-```bash
-pip install git+https://github.com/edunext/tutor-modern-theming
-```
+- **Automatic Installation of Modern Themes**: Fetches and configures theme assets during the build process.
+- **Supports `PARAGON_THEME_URLS` Configuration**: Ensures MFEs can dynamically load themes via Paragon.
+- **Plugin Slots Integration**: Allows custom slot-based theming components to be loaded into MFEs.
+- **Consistent Header and Footer**: Enables cross-platform theming alignment between MFEs and legacy pages.
+- **Custom CLI Commands**: Provides an `enable-legacy-theme` command to simplify theme deployment.
 
-## Usage
+Installation
+------------
 
-```bash
-tutor plugins enable tutor-modern-theming
-```
+To install `tutor-modern-theming`, follow these steps:
 
+.. code-block:: bash
+    pip install git+https://github.com/eduNEXT/tutor-modern-theming.git
