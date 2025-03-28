@@ -1,6 +1,8 @@
-.. warning::
+.. raw:: html
 
-    This is an `alpha` or `pilot` version of the plugin. Expect possible changes and instability.
+    <div style="background-color: #ffe0b2; padding: 10px; border: 1px solid #ff9800; border-radius: 5px; color: black">
+        <strong>Warning:</strong> This is an `alpha` or `pilot` version of the plugin. Expect possible changes and instability.
+    </div>
 
 Tutor Modern Theming
 ====================
