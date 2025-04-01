@@ -13,6 +13,11 @@ Overview
 It integrates modern theming approaches, including design tokens and CSS runtime configurations, to ensure a consistent
 look and feel across MFEs and the legacy Open edX experience.
 
+Example
+-------
+
+
+
 Features
 --------
 
@@ -66,6 +71,8 @@ Run the following command to enable the legacy theme:
 
     tutor enable-legacy-theme
 
+This command will create a symlink to the modern-theming directory in the openedx/themes directory, allowing you to customize the theme.
+
 Build and Start
 ^^^^^^^^^^^^^^^
 
@@ -77,6 +84,8 @@ After enabling the plugin, rebuild and restart your Tutor environment:
 
     tutor images build mfe
 
+    tutor images build openedx
+
     tutor local start -d
 
 Modern Theming
@@ -84,6 +93,15 @@ Modern Theming
 
 This plugin integrates the Modern Theming system, which is designed to provide a unified look across Open edX's MFEs and legacy pages.
 The theme, called modern-theming, is hosted at `eduNEXT/modern-theming <https://github.com/eduNEXT/modern-theming/tree/main>`_ and leverages Paragon and CSS Variables for runtime styling customization.
+
+How to set theme colors?
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+To set theme colors, you can modify the tokens defined in the `modern-theming` repository.
+You can find the tokens in the `lms/tokens` directory of the `modern-theming` repository.
+For example, to change the primary color, you can modify the `primary` token in `lms/tokens/themes/light/global/color.json`.
+After modifying the tokens, you need to rebuild the theme or rebuild the openedx images to apply the changes.
+Colors can also be modified at runtime using Varsity and the usual eox-tenant configurations.
 
 Theming includes:
 -----------------
