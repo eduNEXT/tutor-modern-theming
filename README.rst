@@ -97,7 +97,11 @@ Theming includes:
 Prerequisite of the MFE
 -----------------------
 
-The recommended minimum MFE versions should be at least those of SUMAC, preferably using the ednx-release/sumac.master branch.
+This plugin is supported and tested with Open edX releases >= Sumac.
+
+Due to the fact that upstream MFEs in the Sumac release do not support CSS variables at runtime, it is necessary to use our custom MFE branches: `ednx-release/sumac.master`.
+
+If the Open edX release being used already includes runtime support for CSS variables, then using the custom MFEs is not required.
 This ensures compatibility and the support provided by eduNEXT for MFEs.
 
 Dependency Versions
