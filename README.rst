@@ -1,8 +1,8 @@
 Tutor Modern Theming
 ====================
 
-Warning!
---------
+⚠️ Warning
+----------
 
 This is an `alpha` or `pilot` version of the plugin. Expect possible changes and instability.
 
@@ -100,20 +100,22 @@ Prerequisite of the MFE
 The recommended minimum MFE versions should be at least those of SUMAC, preferably using the ednx-release/sumac.master branch.
 This ensures compatibility and the support provided by eduNEXT for MFEs.
 
-Dependency versions
+Dependency Versions
 ^^^^^^^^^^^^^^^^^^^
-- `@edunext/frontend-render-widgets` >= 1.0.0
-- `@edunext/modern-theming-alpha` >= 1.0.0
-- `@edx/frontend-component-footer` >= 14.0.0
-- `@edx/frontend-component-header` >= 5.8.0
-- `@edx/frontend-lib-learning-assistant` >= 2.13.0
-- `@edx/frontend-lib-special-exams` >= 3.1.3
-- `@edx/frontend-platform` >= 8.3.0
-- `@edx/react-unit-test-utils` >= 3.0.0
-- `@openedx/frontend-build` >= 14.1.2
-- `@openedx/frontend-plugin-framework` >= 1.3.0
-- `@openedx/frontend-slot-footer` >= 1.0.2
-- `@openedx/paragon` >= 23.4.3 o 23.x.y-alpha.z
+
+- **@edunext/frontend-render-widgets**: >= 1.0.0  
+- **@edunext/modern-theming-alpha**: >= 1.0.0  
+- **@edx/frontend-component-footer**: >= 14.0.0  
+- **@edx/frontend-component-header**: >= 5.8.0  
+- **@edx/frontend-lib-learning-assistant**: >= 2.13.0  
+- **@edx/frontend-lib-special-exams**: >= 3.1.3  
+- **@edx/frontend-platform**: >= 8.3.0  
+- **@edx/react-unit-test-utils**: >= 3.0.0  
+- **@openedx/frontend-build**: >= 14.1.2  
+- **@openedx/frontend-plugin-framework**: >= 1.3.0  
+- **@openedx/frontend-slot-footer**: >= 1.0.2  
+- **@openedx/paragon**: >= 23.4.3 or 23.x.y-alpha.z
+
 
 Plugin Slots
 ------------
