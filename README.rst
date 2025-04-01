@@ -94,7 +94,7 @@ Theming includes:
 
 - Consistency between MFE-based and legacy Open edX pages.
 
-Prerequisite of the MFE
+MFE Compatibility
 -----------------------
 
 This plugin is supported and tested with Open edX releases >= Sumac.
