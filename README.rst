@@ -200,6 +200,20 @@ For example, the `logo_slot` slot is available within the frontend-component-hea
 Learning MFE, provided that the MFE has a version of the frontend-component-header that includes this slot.
 This allows greater flexibility in customizing MFEs without directly modifying their source code.
 
+Examples
+^^^^^^^^
+
+**Slots in Learner Dashboard MFE**
+
+.. image:: examples/learner-dashboard-slots.png
+    :alt: Slots in Learner Dashboard MFE
+
+
+**Slots in Learning Header MFE**
+
+.. image:: examples/learning-header-slots.png
+    :alt: Slots in Learning Header MFE
+
 Patches
 -------
 
