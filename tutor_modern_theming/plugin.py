@@ -5,6 +5,7 @@ from glob import glob
 
 import click
 import importlib_resources
+import subprocess
 from tutor import hooks
 from tutor import utils as tutor_utils
 from tutormfe import hooks as mfe_hooks
