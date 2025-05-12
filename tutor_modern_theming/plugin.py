@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+import base64
 from glob import glob
 
 import click
@@ -9,12 +10,14 @@ import subprocess
 from tutor import hooks
 from tutor import utils as tutor_utils
 from tutormfe import hooks as mfe_hooks
+from tutormfe.hooks import PLUGIN_SLOTS
 
 from .__about__ import __version__
 
 ########################################
 # CONFIGURATION
 ########################################
+
 
 hooks.Filters.CONFIG_DEFAULTS.add_items(
     [
@@ -255,7 +258,68 @@ def enable_legacy_theme() -> None:
 
 hooks.Filters.CLI_COMMANDS.add_item(enable_legacy_theme)
 
+@click.command(name="copy-footer-mfes", help="Enable modern theme")
+def copy_footer_mfes() -> None:
+        context = click.get_current_context().obj
+        tutor_root = context.root
+            # Read and escape the footer HTML
+        html_path = os.path.join(tutor_root, "env/build/openedx/themes/modern-theming","lms/templates/footer.html")
+        plugin_path = os.path.dirname(os.path.abspath(__file__)) + '/plugin.py'
+        print(plugin_path)
+        if os.path.isfile(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
+                raw_html = f.read()
+        else:
+            raise click.ClickException(f"Missing footer.html at {html_path}")
+        raw_html_no_newlines = raw_html.replace("\n", "").replace("\r", "")
+        # Use JSON encoding to escape the string for JavaScript
+        escaped_html = json.dumps(raw_html_no_newlines)[1:-1]  # Strip the outer quotes added by json.dumps
+        # Replace ALL " with \\"
+        escaped_html = escaped_html.replace('"', '\\"')
+        print(escaped_html)
+        # Code to append
+        slot_code = f'''
+        # Add slot injection
+PLUGIN_SLOTS.add_items([
+    (
+        "all",
+        "footer_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Hide,
+        widgetId: 'default_contents',
+        }}
+        \"\"\"
+    ),
+    (
+        "all",
+        "footer_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Insert,
+        widget: {{
+            id: 'custom_footer',
+            type: DIRECT_PLUGIN,
+            RenderWidget: () => (
+             <div
+                dangerouslySetInnerHTML={{{{ __html: "{escaped_html}" }}}}
+            />
+            ),
+        }},
+        }}
+        \"\"\"
+    )
+])
+ '''
+        # Append to plugin.py
+        with open(plugin_path, "a") as plugin_file:
+            plugin_file.write("\n" + slot_code)
+            print(plugin_file)
 
+        print(f"Slot injection code appended to {plugin_path}")
+        subprocess.check_output("tutor config save",shell=True)
+
+hooks.Filters.CLI_COMMANDS.add_item(copy_footer_mfes)
 # Then, you would add subcommands directly to the Click group, for example:
 
 
@@ -316,5 +380,3 @@ hooks.Filters.ENV_PATCHES.add_item(
         "let helloWorld = 'Hello World!'",
     )
 )
-
-load_all_plugin_slots()
