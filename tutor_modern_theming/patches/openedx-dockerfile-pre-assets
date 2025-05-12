@@ -5,14 +5,14 @@
 #     && openedx-assets collect --settings=tutor.assets \
 #     && rdfind -makesymlinks true -followsymlinks true /openedx/staticfiles/
 
-# # These commands are already in the Dockerfile Tutor template,
-# # but we needed them for the modern theme compilation.
-# RUN npm run postinstall
-# RUN npm run compile-sass -- --skip-themes
-# RUN npm run webpack
-# # Compiling the modern theme.
-# RUN npm run compile-sass -- \
-#     --theme-dir /openedx/themes/modern-theming \
-#     --theme modern-theming \
-#     && ./manage.py lms collectstatic --noinput --settings=tutor.assets \
-#     && rdfind -makesymlinks true -followsymlinks true /openedx/staticfiles/
+# These commands are already in the Dockerfile Tutor template,
+# but we needed them for the modern theme compilation.
+RUN npm run postinstall
+RUN npm run compile-sass -- --skip-themes
+RUN npm run webpack
+# Compiling the modern theme.
+RUN npm run compile-sass -- \
+    --theme-dir /openedx/themes/modern-theming \
+    --theme modern-theming \
+    && ./manage.py lms collectstatic --noinput --settings=tutor.assets \
+    && rdfind -makesymlinks true -followsymlinks true /openedx/staticfiles/
