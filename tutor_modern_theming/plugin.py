@@ -1,7 +1,6 @@
 import json
 import sys
 import os
-import base64
 from glob import glob
 
 import click
@@ -217,7 +216,7 @@ def enable_legacy_theme() -> None:
     THEMES = [{
         "name": "modern-theming",
         "repo": "git@github.com:eduNEXT/modern-theming.git",
-        "version": "main",
+        "version": "ase/footer-theme",
     }]
     context = click.get_current_context().obj
     tutor_root = context.root
