@@ -9,7 +9,6 @@ import subprocess
 from tutor import hooks
 from tutor import utils as tutor_utils
 from tutormfe import hooks as mfe_hooks
-from tutormfe.hooks import PLUGIN_SLOTS
 
 from .__about__ import __version__
 
@@ -216,7 +215,7 @@ def enable_legacy_theme() -> None:
     THEMES = [{
         "name": "modern-theming",
         "repo": "git@github.com:eduNEXT/modern-theming.git",
-        "version": "ase/footer-theme",
+        "version": "main",
     }]
     context = click.get_current_context().obj
     tutor_root = context.root
@@ -279,7 +278,7 @@ def copy_footer_mfes() -> None:
         # Code to append
         slot_code = f'''
         # Add slot injection
-PLUGIN_SLOTS.add_items([
+mfe_hooks.PLUGIN_SLOTS.add_items([
     (
         "all",
         "footer_slot",
@@ -342,7 +341,7 @@ def copy_header_mfes() -> None:
         # Code to append
         slot_code = f'''
         # Add slot injection
-PLUGIN_SLOTS.add_items([
+mfe_hooks.PLUGIN_SLOTS.add_items([
     (
         "all",
         "header_slot",
@@ -442,3 +441,37 @@ hooks.Filters.ENV_PATCHES.add_item(
         "let helloWorld = 'Hello World!'",
     )
 )
+
+
+        # Add slot injection
+mfe_hooks.PLUGIN_SLOTS.add_items([
+    (
+        "all",
+        "footer_slot",
+        """
+        {
+        op: PLUGIN_OPERATIONS.Hide,
+        widgetId: 'default_contents',
+        }
+        """
+    ),
+    (
+        "all",
+        "footer_slot",
+        """
+        {
+        op: PLUGIN_OPERATIONS.Insert,
+        widget: {
+            id: 'custom_footer',
+            type: DIRECT_PLUGIN,
+            RenderWidget: () => (
+             <div
+                dangerouslySetInnerHTML={{ __html: "<footer style=\\"background-color:#f4f0fa; color:#333; padding:30px 20px; font-family:sans-serif;\\">  <div style=\\"max-width:1000px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; text-align:center;\\">    <div style=\\"flex:1 1 300px; margin-bottom:20px;\\">      <svg width=\\"120\\" height=\\"120\\" viewBox=\\"0 0 300 300\\" xmlns=\\"http://www.w3.org/2000/svg\\" fill=\\"none\\">        <rect x=\\"3\\" y=\\"3\\" width=\\"294\\" height=\\"294\\" rx=\\"32\\" stroke=\\"#6A0DAD\\" stroke-width=\\"6\\" fill=\\"none\\"/>        <g transform=\\"translate(75, 60)\\">          <circle cx=\\"75\\" cy=\\"75\\" r=\\"65\\" stroke=\\"#6A0DAD\\" stroke-width=\\"6\\"/>          <polygon points=\\"75,20 95,95 75,130 55,95\\" fill=\\"#6A0DAD\\"/>          <circle cx=\\"75\\" cy=\\"75\\" r=\\"6\\" fill=\\"white\\" stroke=\\"#6A0DAD\\" stroke-width=\\"3\\"/>        </g>        <text x=\\"50%\\" y=\\"260\\" font-family=\\"Verdana, sans-serif\\" font-size=\\"28\\" fill=\\"#6A0DAD\\" text-anchor=\\"middle\\">          Oddisey Institute        </text>      </svg>    </div>    <div style=\\"flex:2 1 400px;\\">      <p style=\\"font-size:16px; margin:0;\\">Developed with love by <strong style=\\"color:#6A0DAD;\\">Modern Theming</strong></p>      <div style=\\"margin-top:10px;\\">        <a href=\\"/docs\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">Docs</a>        <a href=\\"https://github.com/eduNEXT/tutor-modern-theming\\" target=\\"_blank\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">GitHub</a>        <a href=\\"/contact\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">Contact</a>      </div>      <p style=\\"color:#666; font-size:13px; margin-top:12px;\\">\u00a9 2025 Oddisey Institute. All rights reserved.</p>    </div>  </div></footer>" }}
+            />
+            ),
+        },
+        }
+        """
+    )
+])
+ 
