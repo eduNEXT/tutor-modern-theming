@@ -249,6 +249,9 @@ def enable_legacy_theme() -> None:
             theme_path,
         )
 
+        echo_command = f'cd {theme_path} && npm install && npm run build-tokens && npm run replace-variables && npm run build-files'
+        subprocess.call(echo_command, shell=True)
+
 
 hooks.Filters.CLI_COMMANDS.add_item(enable_legacy_theme)
 
