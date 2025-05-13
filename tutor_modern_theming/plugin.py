@@ -16,6 +16,7 @@ from .__about__ import __version__
 # CONFIGURATION
 ########################################
 
+
 hooks.Filters.CONFIG_DEFAULTS.add_items(
     [
         # Add your new settings that have default values here.
@@ -255,7 +256,131 @@ def enable_legacy_theme() -> None:
 
 hooks.Filters.CLI_COMMANDS.add_item(enable_legacy_theme)
 
+@click.command(name="copy-footer-mfes", help="Enable modern theme")
+def copy_footer_mfes() -> None:
+        context = click.get_current_context().obj
+        tutor_root = context.root
+            # Read and escape the footer HTML
+        html_path = os.path.join(tutor_root, "env/build/openedx/themes/modern-theming","lms/templates/footer.html")
+        plugin_path = os.path.dirname(os.path.abspath(__file__)) + '/plugin.py'
+        print(plugin_path)
+        if os.path.isfile(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
+                raw_html = f.read()
+        else:
+            raise click.ClickException(f"Missing footer.html at {html_path}")
+        raw_html_no_newlines = raw_html.replace("\n", "").replace("\r", "")
+        # Use JSON encoding to escape the string for JavaScript
+        escaped_html = json.dumps(raw_html_no_newlines)[1:-1]  # Strip the outer quotes added by json.dumps
+        # Replace ALL " with \\"
+        escaped_html = escaped_html.replace('"', '\\"')
+        print(escaped_html)
+        # Code to append
+        slot_code = f'''
+        # Add slot injection
+mfe_hooks.PLUGIN_SLOTS.add_items([
+    (
+        "all",
+        "footer_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Hide,
+        widgetId: 'default_contents',
+        }}
+        \"\"\"
+    ),
+    (
+        "all",
+        "footer_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Insert,
+        widget: {{
+            id: 'custom_footer',
+            type: DIRECT_PLUGIN,
+            RenderWidget: () => (
+             <div
+                dangerouslySetInnerHTML={{{{ __html: "{escaped_html}" }}}}
+            />
+            ),
+        }},
+        }}
+        \"\"\"
+    )
+])
+ '''
+        # Append to plugin.py
+        with open(plugin_path, "a") as plugin_file:
+            plugin_file.write("\n" + slot_code)
+            print(plugin_file)
 
+        print(f"Slot injection code appended to {plugin_path}")
+        subprocess.check_output("tutor config save",shell=True)
+
+hooks.Filters.CLI_COMMANDS.add_item(copy_footer_mfes)
+
+@click.command(name="copy-header-mfes", help="Enable modern theme")
+def copy_header_mfes() -> None:
+        context = click.get_current_context().obj
+        tutor_root = context.root
+            # Read and escape the footer HTML
+        html_path = os.path.join(tutor_root, "env/build/openedx/themes/modern-theming","lms/templates/header.html")
+        plugin_path = os.path.dirname(os.path.abspath(__file__)) + '/plugin.py'
+        print(plugin_path)
+        if os.path.isfile(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
+                raw_html = f.read()
+        else:
+            raise click.ClickException(f"Missing header.html at {html_path}")
+        raw_html_no_newlines = raw_html.replace("\n", "").replace("\r", "")
+        # Use JSON encoding to escape the string for JavaScript
+        escaped_html = json.dumps(raw_html_no_newlines)[1:-1]  # Strip the outer quotes added by json.dumps
+        # Replace ALL " with \\"
+        escaped_html = escaped_html.replace('"', '\\"')
+        print(escaped_html)
+        # Code to append
+        slot_code = f'''
+        # Add slot injection
+mfe_hooks.PLUGIN_SLOTS.add_items([
+    (
+        "all",
+        "header_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Hide,
+        widgetId: 'default_contents',
+        }}
+        \"\"\"
+    ),
+    (
+        "all",
+        "header_slot",
+        \"\"\"
+        {{
+        op: PLUGIN_OPERATIONS.Insert,
+        widget: {{
+            id: 'custom_header',
+            type: DIRECT_PLUGIN,
+            RenderWidget: () => (
+             <div
+                dangerouslySetInnerHTML={{{{ __html: "{escaped_html}" }}}}
+            />
+            ),
+        }},
+        }}
+        \"\"\"
+    )
+])
+ '''
+        # Append to plugin.py
+        with open(plugin_path, "a") as plugin_file:
+            plugin_file.write("\n" + slot_code)
+            print(plugin_file)
+
+        print(f"Slot injection code appended to {plugin_path}")
+        subprocess.check_output("tutor config save",shell=True)
+
+hooks.Filters.CLI_COMMANDS.add_item(copy_header_mfes)
 # Then, you would add subcommands directly to the Click group, for example:
 
 
@@ -317,4 +442,36 @@ hooks.Filters.ENV_PATCHES.add_item(
     )
 )
 
-load_all_plugin_slots()
+
+        # Add slot injection
+mfe_hooks.PLUGIN_SLOTS.add_items([
+    (
+        "all",
+        "footer_slot",
+        """
+        {
+        op: PLUGIN_OPERATIONS.Hide,
+        widgetId: 'default_contents',
+        }
+        """
+    ),
+    (
+        "all",
+        "footer_slot",
+        """
+        {
+        op: PLUGIN_OPERATIONS.Insert,
+        widget: {
+            id: 'custom_footer',
+            type: DIRECT_PLUGIN,
+            RenderWidget: () => (
+             <div
+                dangerouslySetInnerHTML={{ __html: "<footer style=\\"background-color:#f4f0fa; color:#333; padding:30px 20px; font-family:sans-serif;\\">  <div style=\\"max-width:1000px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; text-align:center;\\">    <div style=\\"flex:1 1 300px; margin-bottom:20px;\\">      <svg width=\\"120\\" height=\\"120\\" viewBox=\\"0 0 300 300\\" xmlns=\\"http://www.w3.org/2000/svg\\" fill=\\"none\\">        <rect x=\\"3\\" y=\\"3\\" width=\\"294\\" height=\\"294\\" rx=\\"32\\" stroke=\\"#6A0DAD\\" stroke-width=\\"6\\" fill=\\"none\\"/>        <g transform=\\"translate(75, 60)\\">          <circle cx=\\"75\\" cy=\\"75\\" r=\\"65\\" stroke=\\"#6A0DAD\\" stroke-width=\\"6\\"/>          <polygon points=\\"75,20 95,95 75,130 55,95\\" fill=\\"#6A0DAD\\"/>          <circle cx=\\"75\\" cy=\\"75\\" r=\\"6\\" fill=\\"white\\" stroke=\\"#6A0DAD\\" stroke-width=\\"3\\"/>        </g>        <text x=\\"50%\\" y=\\"260\\" font-family=\\"Verdana, sans-serif\\" font-size=\\"28\\" fill=\\"#6A0DAD\\" text-anchor=\\"middle\\">          Oddisey Institute        </text>      </svg>    </div>    <div style=\\"flex:2 1 400px;\\">      <p style=\\"font-size:16px; margin:0;\\">Developed with love by <strong style=\\"color:#6A0DAD;\\">Modern Theming</strong></p>      <div style=\\"margin-top:10px;\\">        <a href=\\"/docs\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">Docs</a>        <a href=\\"https://github.com/eduNEXT/tutor-modern-theming\\" target=\\"_blank\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">GitHub</a>        <a href=\\"/contact\\" style=\\"margin:0 10px; color:#6A0DAD; text-decoration:none; font-size:14px;\\">Contact</a>      </div>      <p style=\\"color:#666; font-size:13px; margin-top:12px;\\">\u00a9 2025 Oddisey Institute. All rights reserved.</p>    </div>  </div></footer>" }}
+            />
+            ),
+        },
+        }
+        """
+    )
+])
+ 
