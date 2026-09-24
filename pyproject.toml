@@ -5,8 +5,7 @@
 name = "tutor-modern-theming"
 description = "Tutor modern theming by Edunext for Opendex"
 authors = [
-  { name = "Jose Palma"}, 
-  { email = "ignacio.palma@edunext.co" },
+  { name = "Jose Palma", email = "ignacio.palma@edunext.co" },
 ]
 license = { text = "Proprietary" }
 
@@ -27,9 +26,9 @@ classifiers = [
 
 ]
 dependencies = [
-    "tutor>=19.0.0,<20.0.0",
+    "tutor>=21.0.0,<23.0.0",
 ]
-optional-dependencies = { dev = ["tutor[dev]>=19.0.0,<20.0.0"] }
+optional-dependencies = { dev = ["tutor[dev]>=21.0.0,<23.0.0"] }
 
 # These fields will be set by hatch_build.py
 dynamic = ["version"]
