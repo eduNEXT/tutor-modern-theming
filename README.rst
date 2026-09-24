@@ -90,6 +90,28 @@ settings or per-tenant (eox-tenant).
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
 
+MFE Home Banner (catalog)
+-------------------------
+
+The plugin also ships a custom home banner (``frontend/edunext-home-banner/``)
+and injects it into the catalog MFE's ``org.openedx.frontend.catalog.home_page.banner``
+slot, hiding the default banner. Same delivery as the footer (Option B); the
+component reuses the catalog MFE's own building blocks via its ``@src`` alias.
+
+Everything customizable comes from ``MFE_CONFIG`` (not varsify — varsify cannot
+emit the catalog-specific CSS vars):
+
+- ``ENABLE_EDUNEXT_HOME_BANNER`` (bool, default ``True``): runtime kill-switch;
+  when false the default catalog banner renders instead.
+- ``HOME_BANNER_BACKGROUND_IMAGE``: absolute image URL, injected as the
+  ``--catalog-home-page-banner-background-image`` CSS var the banner SCSS reads.
+- ``HOME_BANNER_BACKGROUND_COLOR``: optional background color CSS var.
+- ``HOME_BANNER_TITLE`` / ``HOME_BANNER_SUBTITLE``: banner heading and subtitle
+  (fall back to i18n defaults when unset).
+
+Use varsify only for Paragon colors; the banner image/title/subtitle are
+MFE_CONFIG, per-tenant, no rebuild.
+
 Roadmap
 -------
 

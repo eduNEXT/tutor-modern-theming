@@ -162,3 +162,72 @@ hooks.Filters.ENV_PATCHES.add_items(
         ),
     ]
 )
+
+
+########################################
+# MFE HOME BANNER (catalog)
+########################################
+#
+# Custom home banner for the catalog MFE, delivered the same way as the footer
+# (Option B). Everything is driven by MFE_CONFIG via getConfig() — background
+# image, title and subtitle — because varsify cannot emit the catalog-specific
+# CSS vars (e.g. --catalog-home-page-banner-background-image). The component
+# reuses the catalog MFE's own building blocks through its @src alias.
+
+BANNER_MFE = "catalog"
+BANNER_SLOT_ID = "org.openedx.frontend.catalog.home_page.banner"
+
+BANNER_SLOT_CONFIG = """
+{
+    op: PLUGIN_OPERATIONS.Hide,
+    widgetId: 'default_contents',
+},
+{
+    op: PLUGIN_OPERATIONS.Insert,
+    widget: {
+        id: 'modern_theming_home_banner',
+        type: DIRECT_PLUGIN,
+        RenderWidget: EdunextHomeBanner,
+    },
+},
+"""
+
+# 1. Delivery: copy the banner component into the catalog source tree.
+hooks.Filters.ENV_PATCHES.add_item(
+    (
+        f"mfe-dockerfile-pre-npm-build-{BANNER_MFE}",
+        "ADD --keep-git-dir=true "
+        + MODERN_THEMING_REPO
+        + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming\n"
+        + "RUN cp -r /tmp/tutor-modern-theming/frontend/edunext-home-banner "
+        + "src/edunext-home-banner",
+    )
+)
+# 2. Definition: bring EdunextHomeBanner into env.config.jsx scope for catalog.
+hooks.Filters.ENV_PATCHES.add_item(
+    (
+        f"mfe-env-config-runtime-definitions-{BANNER_MFE}",
+        "const EdunextHomeBanner = require('./src/edunext-home-banner').default;",
+    )
+)
+# 3. Wiring: register the home banner slot for catalog.
+PLUGIN_SLOTS.add_item((BANNER_MFE, BANNER_SLOT_ID, BANNER_SLOT_CONFIG))
+
+# Enable the custom banner by default. Tenants can set
+# MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = False to fall back to the default
+# catalog banner without rebuilding. The banner content itself (background
+# image, title, subtitle) is set per-tenant through these MFE_CONFIG keys:
+#   HOME_BANNER_BACKGROUND_IMAGE, HOME_BANNER_BACKGROUND_COLOR,
+#   HOME_BANNER_TITLE, HOME_BANNER_SUBTITLE
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            "openedx-lms-development-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = True',
+        ),
+        (
+            "openedx-lms-production-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = True',
+        ),
+    ]
+)
