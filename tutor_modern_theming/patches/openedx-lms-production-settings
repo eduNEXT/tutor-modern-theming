@@ -1,2 +1,0 @@
-ENABLE_COMPREHENSIVE_THEMING = True
-COMPREHENSIVE_THEME_DIRS.append("/openedx/themes/modern-theming")

@@ -1,1 +1,0 @@
-const { SlotWidgetHeaderLogo, SlotWidgetFooter, SlotWidgetLearnerDashboardSidebar } = require('./frontend-render-widgets/src');
