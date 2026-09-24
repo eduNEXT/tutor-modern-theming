@@ -1,0 +1,218 @@
+// Footer component styles using Paragon design tokens (varsify-compatible)
+// Background: --pgn-color-primary-700 (auto-generated shade 20% of customer primary)
+// Links: --pgn-color-link-base / --pgn-color-link-hover (customer-configurable via varsify)
+// Accent: --pgn-color-brand-base (column title underline)
+
+.custom-footer {
+  background-color: var(--pgn-color-primary-700);
+  color: var(--pgn-color-white);
+  padding: 0;
+  margin-top: auto;
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 1.5rem;
+  }
+
+  // Top section: logo + nav columns
+  .footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem;
+    align-items: flex-start;
+  }
+
+  .footer-brand {
+    flex: 1 1 280px;
+    min-width: 220px;
+    max-width: 320px;
+  }
+
+  .footer-logo-link {
+    display: inline-block;
+    transition: opacity 0.2s ease;
+
+    &:hover,
+    &:focus {
+      opacity: 0.85;
+    }
+  }
+
+  .footer-logo {
+    max-height: 40px;
+    width: auto;
+    filter: brightness(0) invert(1);
+  }
+
+  .footer-tagline {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--pgn-color-light-300);
+    max-width: 280px;
+  }
+
+  // Powered-by logos
+  .footer-powered-by {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .footer-powered-logo {
+    display: inline-block;
+    transition: opacity 0.2s ease;
+
+    &:hover,
+    &:focus {
+      opacity: 0.8;
+    }
+
+    img {
+      max-height: 30px;
+      width: auto;
+    }
+  }
+
+  // Navigation columns
+  .footer-nav-columns {
+    display: flex;
+    flex: 2 1 auto;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+  }
+
+  .footer-nav-column {
+    flex: 1 1 140px;
+    min-width: 120px;
+  }
+
+  .footer-nav-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pgn-color-white);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--pgn-color-brand-base);
+    display: inline-block;
+  }
+
+  .footer-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .footer-link {
+    color: var(--pgn-color-light-300) !important;
+    font-size: 0.875rem;
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-white) !important;
+    }
+  }
+
+  // Divider
+  .footer-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 2rem 0 1.25rem;
+  }
+
+  // Bottom section: social icons + copyright
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  // Social icon buttons — centered icons
+  .footer-social {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .footer-social-btn.pgn__icon-btn {
+    color: var(--pgn-color-light-300) !important;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    transition: color 0.2s ease, background-color 0.2s ease;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-white) !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .pgn__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+
+    svg {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+  }
+
+  .footer-copyright {
+    font-size: 0.8125rem;
+    color: var(--pgn-color-light-500);
+    margin: 0;
+  }
+
+  // Extra links row
+  .footer-extra {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-extra-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  // Responsive: stack on mobile
+  @media (max-width: 768px) {
+    .footer-top {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .footer-brand {
+      max-width: 100%;
+    }
+
+    .footer-nav-columns {
+      gap: 1.5rem;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}

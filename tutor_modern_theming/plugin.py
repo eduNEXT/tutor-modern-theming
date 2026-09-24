@@ -16,6 +16,7 @@ from glob import glob
 
 import importlib_resources
 from tutor import hooks
+from tutormfe.hooks import PLUGIN_SLOTS
 
 from .__about__ import __version__
 
@@ -61,3 +62,103 @@ for path in glob(
         hooks.Filters.ENV_PATCHES.add_item(
             (os.path.basename(path), patch_file.read())
         )
+
+
+########################################
+# MFE FOOTER
+########################################
+#
+# Delivery follows "Option B" (see docs/decisions/0002): the React component
+# lives in this repo under frontend/edunext-footer/ and is copied into each
+# MFE source tree at build time, so it compiles through the MFE's own webpack
+# (SCSS and i18n stay intact) using the MFE's own react/paragon versions.
+#
+# No separate widget repo, no npm publish. The component is fetched from this
+# same repo by git ref at build time.
+
+# Git ref of THIS repo used to fetch the footer component during the MFE build.
+# Defaults to "master"; operators SHOULD pin a tag or commit SHA in production
+# for reproducible builds.
+hooks.Filters.CONFIG_DEFAULTS.add_items(
+    [
+        ("MODERN_THEMING_GIT_REF", "master"),
+    ]
+)
+
+MODERN_THEMING_REPO = "https://github.com/eduNEXT/tutor-modern-theming.git"
+
+# MFEs whose compiled bundle exposes org.openedx.frontend.layout.footer.v1.
+# authoring/Studio uses a different slot (studio_footer.v1) and is left to a
+# follow-up.
+MODERN_THEMING_FOOTER_MFES = [
+    "account",
+    "communications",
+    "discussions",
+    "gradebook",
+    "learner-dashboard",
+    "learning",
+    "ora-grading",
+    "profile",
+]
+
+FOOTER_SLOT_ID = "org.openedx.frontend.layout.footer.v1"
+
+# Plugins injected into the footer slot: hide the default footer, insert
+# EdunextFooter. EdunextFooter is brought into scope by the per-app
+# runtime-definitions patch below, which tutor-mfe emits right before the
+# addPlugins() call this config feeds — so there is no temporal-dead-zone.
+FOOTER_SLOT_CONFIG = """
+{
+    op: PLUGIN_OPERATIONS.Hide,
+    widgetId: 'default_contents',
+},
+{
+    op: PLUGIN_OPERATIONS.Insert,
+    widget: {
+        id: 'modern_theming_footer',
+        type: DIRECT_PLUGIN,
+        RenderWidget: EdunextFooter,
+    },
+},
+"""
+
+for mfe in MODERN_THEMING_FOOTER_MFES:
+    # 1. Delivery: fetch this repo at build time and copy the component into
+    #    the MFE source tree.
+    hooks.Filters.ENV_PATCHES.add_item(
+        (
+            f"mfe-dockerfile-pre-npm-build-{mfe}",
+            "ADD --keep-git-dir=true "
+            + MODERN_THEMING_REPO
+            + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming\n"
+            + "RUN cp -r /tmp/tutor-modern-theming/frontend/edunext-footer "
+            + "src/edunext-footer",
+        )
+    )
+    # 2. Definition: bring EdunextFooter into env.config.jsx scope for this MFE.
+    #    require() (not a top-level import) because env.config.jsx is shared by
+    #    every MFE and only these have the copied files.
+    hooks.Filters.ENV_PATCHES.add_item(
+        (
+            f"mfe-env-config-runtime-definitions-{mfe}",
+            "const EdunextFooter = require('./src/edunext-footer').default;",
+        )
+    )
+    # 3. Wiring: register the footer slot for this MFE.
+    PLUGIN_SLOTS.add_item((mfe, FOOTER_SLOT_ID, FOOTER_SLOT_CONFIG))
+
+# Enable the footer by default. Tenants can set
+# MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = False (via settings or eox-tenant) to
+# fall back to the default Open edX footer without rebuilding.
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            "openedx-lms-development-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = True',
+        ),
+        (
+            "openedx-lms-production-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = True',
+        ),
+    ]
+)
