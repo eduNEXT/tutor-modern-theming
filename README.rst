@@ -195,10 +195,37 @@ The search field and the promo video keep the catalog behavior: the search field
 shows only when ``ENABLE_COURSE_DISCOVERY`` is ``true``, and the promo video uses
 ``HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID``.
 
+MFE Header (standard desktop)
+-----------------------------
+
+The plugin ships an eduNEXT desktop header (``frontend/edunext-header/``) and
+injects it into ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default
++ Insert) for the MFEs that use ``frontend-component-header``'s standard header.
+Only that header exposes a whole-header slot; the ``learning`` and ``authoring``
+headers, and the mobile header, are follow-ups (see ``docs/decisions/0005``).
+
+Styled MFEs: ``account``, ``communications``, ``discussions``, ``gradebook``,
+``learner-dashboard``, ``ora-grading``, ``profile``.
+
+The header reuses the session data from ``AppContext`` (login state, avatar,
+username) instead of rebuilding it, keeps the base logged-in / logged-out
+buttons, and reads ``MFE_CONFIG``:
+
+- ``ENABLE_EDUNEXT_HEADER`` (bool, default ``True``): when false, renders the
+  base elements plainly (no eduNEXT chrome/extras).
+- ``HEADER_MAIN_MENU``: ``[{ txt, url, target }]`` — main navigation links
+  (falls back to the menu the host MFE passes to the slot).
+- ``HEADER_USER_MENU_EXTRA_LINKS``: ``[{ txt, url }]`` — appended to the user
+  dropdown, before "Sign Out".
+
+Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
+same as the footer.
+
 Roadmap
 -------
 
-- MFE header slot widgets.
+- Mobile header (``header_mobile.v1``), learning header and Studio header.
+- Legacy (Mako) header sharing the same ``HEADER_*`` config.
 - Optional ``@edx/brand`` package for global token defaults.
 
 Contributing
