@@ -1,0 +1,70 @@
+// eduNEXT header styles using Paragon design tokens (varsify-compatible), same
+// approach as EdunextFooter.scss. Colors follow the tenant's varsify variants.
+
+.edunext-header {
+  background-color: var(--pgn-color-white);
+  border-bottom: 1px solid var(--pgn-color-light-400);
+
+  .ehd-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    min-height: 4rem;
+    gap: 1.5rem;
+  }
+
+  .ehd-logo-link {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ehd-logo {
+    max-height: 2.25rem;
+    width: auto;
+  }
+
+  // Main navigation
+  .ehd-main-nav {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .ehd-nav-link {
+    color: var(--pgn-color-primary-700) !important;
+    font-weight: 500;
+    text-decoration: none !important;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-brand-base) !important;
+    }
+  }
+
+  // User dropdown toggle
+  .ehd-user-toggle {
+    border-radius: 2rem;
+  }
+
+  .ehd-user-menu-content {
+    box-shadow: var(--pgn-elevation-box-shadow-lg, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
+  }
+
+  // Plain mode (kill-switch): drop the eduNEXT chrome, keep base layout.
+  &.edunext-header--plain {
+    border-bottom: 1px solid var(--pgn-color-light-400);
+
+    .ehd-nav-link {
+      color: var(--pgn-color-gray-700) !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ehd-main-nav {
+      display: none;
+    }
+
+    .ehd-container {
+      gap: 0.75rem;
+    }
+  }
+}
