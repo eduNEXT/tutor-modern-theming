@@ -90,6 +90,29 @@ settings or per-tenant (eox-tenant).
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
 
+Legacy (Django/Mako) footer
+---------------------------
+
+The plugin also ships a legacy footer (``legacy/footer.html``, Mako) that reads
+the **same** ``FOOTER_*`` ``MFE_CONFIG`` keys as the React MFE footer. This keeps
+legacy Django pages and the MFEs consistent from a single config source — two
+thin renderers, one config — without compiling React into Django (see
+``docs/decisions/0004``).
+
+It is delivered by overriding edx-platform's core ``lms/templates/footer.html``
+at openedx image build time (same git-ref delivery as the MFE side). Legacy
+pages don't reliably expose Paragon tokens, so the legacy footer palette is
+self-contained with an optional ``FOOTER_BACKGROUND_COLOR`` override.
+
+.. warning::
+
+   This overrides the **core** footer template. A comprehensive theme that ships
+   its own ``lms/templates/footer.html`` (e.g. ``bragi``) takes precedence over
+   the core one; on such sites, drop the theme's footer override for this to take
+   effect. Content parity is config-driven; **structure** changes must be kept in
+   sync across both renderers (``frontend/edunext-footer/`` and
+   ``legacy/footer.html``).
+
 Roadmap
 -------
 

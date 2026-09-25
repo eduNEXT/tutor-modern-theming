@@ -162,3 +162,30 @@ hooks.Filters.ENV_PATCHES.add_items(
         ),
     ]
 )
+
+
+########################################
+# LEGACY FOOTER (Django/Mako)
+########################################
+#
+# Same config, second renderer (see docs/decisions/0004). The plugin ships a
+# Mako footer (legacy/footer.html) that reads the SAME FOOTER_* MFE_CONFIG keys
+# as the React MFE footer, so legacy Django pages and the MFEs stay consistent
+# from a single config source — without compiling React into Django.
+#
+# Delivered the same way as the MFE side: the openedx image build fetches this
+# repo by git ref and overrides edx-platform's core lms/templates/footer.html.
+#
+# Caveat: this overrides the CORE footer template. A comprehensive theme that
+# ships its own lms/templates/footer.html takes precedence over the core one;
+# on such sites, drop the theme's footer override for this to take effect.
+hooks.Filters.ENV_PATCHES.add_item(
+    (
+        "openedx-dockerfile-post-git-checkout",
+        "ADD --keep-git-dir=true "
+        + MODERN_THEMING_REPO
+        + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-legacy\n"
+        + "RUN cp /tmp/tutor-modern-theming-legacy/legacy/footer.html "
+        + "lms/templates/footer.html",
+    )
+)
