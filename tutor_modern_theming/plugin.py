@@ -162,3 +162,89 @@ hooks.Filters.ENV_PATCHES.add_items(
         ),
     ]
 )
+
+
+########################################
+# MFE HEADER (standard desktop header)
+########################################
+#
+# Same Option B delivery as the footer. Only the STANDARD header
+# (frontend-component-header's DesktopHeader) exposes a whole-header slot
+# (header_desktop.v1), so this covers the MFEs that use it. The EdunextHeader
+# reuses the auth data from AppContext / the slot props (login state, avatar,
+# user menu) instead of rebuilding it, and reads MFE_CONFIG for the eduNEXT
+# extras (HEADER_MAIN_MENU, HEADER_USER_MENU_EXTRA_LINKS).
+#
+# Not covered here (no whole-header slot): the learning header (LearningHeader)
+# and Studio header (StudioHeader), plus the mobile header (header_mobile.v1).
+# Those are follow-ups; see docs/decisions/0005.
+
+# MFEs that render frontend-component-header's standard Header (i.e. expose
+# org.openedx.frontend.layout.header_desktop.v1). Excludes learning
+# (LearningHeader) and authoring (StudioHeader).
+MODERN_THEMING_HEADER_MFES = [
+    "account",
+    "communications",
+    "discussions",
+    "gradebook",
+    "learner-dashboard",
+    "ora-grading",
+    "profile",
+]
+
+HEADER_DESKTOP_SLOT_ID = "org.openedx.frontend.layout.header_desktop.v1"
+
+HEADER_DESKTOP_SLOT_CONFIG = """
+{
+    op: PLUGIN_OPERATIONS.Hide,
+    widgetId: 'default_contents',
+},
+{
+    op: PLUGIN_OPERATIONS.Insert,
+    widget: {
+        id: 'modern_theming_desktop_header',
+        type: DIRECT_PLUGIN,
+        RenderWidget: EdunextDesktopHeader,
+    },
+},
+"""
+
+for mfe in MODERN_THEMING_HEADER_MFES:
+    # 1. Delivery: copy the header component into the MFE source tree. Uses a
+    #    distinct /tmp path so it does not collide with the footer's ADD.
+    hooks.Filters.ENV_PATCHES.add_item(
+        (
+            f"mfe-dockerfile-pre-npm-build-{mfe}",
+            "ADD --keep-git-dir=true "
+            + MODERN_THEMING_REPO
+            + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-header\n"
+            + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/edunext-header "
+            + "src/edunext-header",
+        )
+    )
+    # 2. Definition: bring EdunextDesktopHeader into env.config.jsx scope.
+    hooks.Filters.ENV_PATCHES.add_item(
+        (
+            f"mfe-env-config-runtime-definitions-{mfe}",
+            "const EdunextDesktopHeader = "
+            "require('./src/edunext-header').default;",
+        )
+    )
+    # 3. Wiring: register the desktop header slot for this MFE.
+    PLUGIN_SLOTS.add_item((mfe, HEADER_DESKTOP_SLOT_ID, HEADER_DESKTOP_SLOT_CONFIG))
+
+# Enable the header by default. Tenants can set
+# MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = False to render the header plainly
+# (base elements, no eduNEXT chrome/extras) without rebuilding.
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            "openedx-lms-development-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = True',
+        ),
+        (
+            "openedx-lms-production-settings",
+            'MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = True',
+        ),
+    ]
+)
