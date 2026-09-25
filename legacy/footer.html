@@ -1,0 +1,164 @@
+## mako
+## eduNEXT modern-theming — legacy (Django/Mako) footer.
+##
+## Second renderer of the SAME footer, driven by the SAME MFE_CONFIG keys as the
+## React MFE footer (frontend/edunext-footer/). One config source, two thin
+## renderers — see docs/decisions/0004. This overrides edx-platform's core
+## lms/templates/footer.html.
+
+<%page expression_filter="h"/>
+<%!
+from django.conf import settings
+from django.utils.translation import gettext as _
+
+
+SOCIAL_SVG = {
+    'facebook': '<svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M11.59 3.55l-1.26.001c-.98 0-1.17.47-1.17 1.15v1.51h2.35l-.31 2.37H9.16v6.08H6.71V8.58H4.67V6.21h2.04V4.47c0-2.03 1.24-3.13 3.05-3.13.87 0 1.61.06 1.83.09v2.12z"/></svg>',
+    'twitter': '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.86 10.47L21.15 2h-1.73l-6.33 7.35L8.04 2H2.21l7.64 11.12L2.21 22h1.73l6.68-7.77L15.96 22h5.82L13.86 10.47zm-2.36 2.75l-.77-1.11L4.56 3.3h2.65l4.97 7.11.77 1.11 6.46 9.24h-2.65l-5.27-7.54z"/></svg>',
+    'linkedin': '<svg width="20" height="20" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.55 1.82C3.53.98 2.93.33 1.95.33.97.33.33.98.33 1.82c0 .82.62 1.48 1.58 1.48h.14c.92-.05 1.5-.69 1.5-1.48zM10.38 4.28c1.83 0 3.22 1.17 3.28 3.68v5.12H10.8V8.48c0-1.16-.41-1.95-1.45-1.95-.79 0-1.26.53-1.46 1.05-.07.18-.09.44-.09.7v4.8H4.94V4.48h2.86v1.22l.03-.04c.37-.56 1.01-1.32 2.37-1.38h.18zM3.36 4.48v8.6H.5v-8.6h2.86z"/></svg>',
+    'instagram': '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 01-1.38-.9 3.7 3.7 0 01-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.62c-3.15 0-3.52.01-4.76.07-1.15.05-1.77.24-2.19.41-.55.21-.94.47-1.35.88-.41.41-.67.8-.88 1.35-.17.42-.36 1.04-.41 2.19-.06 1.24-.07 1.61-.07 4.76s.01 3.52.07 4.76c.05 1.15.24 1.77.41 2.19.21.55.47.94.88 1.35.41.41.8.67 1.35.88.42.17 1.04.36 2.19.41 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c1.15-.05 1.77-.24 2.19-.41.55-.21.94-.47 1.35-.88.41-.41.67-.8.88-1.35.17-.42.36-1.04.41-2.19.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.05-1.15-.24-1.77-.41-2.19a3.63 3.63 0 00-.88-1.35 3.63 3.63 0 00-1.35-.88c-.42-.17-1.04-.36-2.19-.41-1.24-.06-1.61-.07-4.76-.07zm0 2.76a5.29 5.29 0 100 10.58 5.29 5.29 0 000-10.58zm0 8.72a3.43 3.43 0 110-6.86 3.43 3.43 0 010 6.86zm6.74-8.93a1.24 1.24 0 11-2.47 0 1.24 1.24 0 012.47 0z"/></svg>',
+    'youtube': '<svg width="20" height="20" viewBox="0 0 14 10" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13 1.02c.4.4.53 1.3.53 1.3s.14 1.06.14 2.12v.99c0 1.06-.14 2.12-.14 2.12s-.13.9-.53 1.3c-.46.47-.97.52-1.25.55l-.09.01c-1.87.13-4.67.14-4.67.14s-3.47-.03-4.53-.13l-.18-.02c-.34-.04-.87-.1-1.29-.53-.4-.4-.53-1.3-.53-1.3S.33 6.49.33 5.43v-.99c0-1.06.13-2.12.13-2.12s.13-.9.53-1.3c.46-.47.97-.52 1.25-.55l.09-.01C4.19.34 7 .33 7 .33h.01s2.8.01 4.67.14l.08.01c.29.03.8.08 1.24.54zM5.62 2.96v3.68l3.6-1.83-3.6-1.85z"/></svg>',
+    'github': '<svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.87.87 2.33.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 014 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.52.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>',
+}
+%>
+
+<%
+mfe_config = getattr(settings, 'MFE_CONFIG', {}) or {}
+
+enabled = mfe_config.get('ENABLE_EDUNEXT_FOOTER', True)
+
+logo_src = mfe_config.get('FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
+logo_url = mfe_config.get('FOOTER_LOGO_URL') or mfe_config.get('LMS_ROOT_URL', '/')
+logo_alt = mfe_config.get('FOOTER_LOGO_ALT', 'Platform logo')
+logo_target = mfe_config.get('FOOTER_LOGO_TARGET', '_self')
+
+description = mfe_config.get('FOOTER_DESCRIPTION', '')
+
+nav_columns = mfe_config.get('FOOTER_NAV_COLUMNS') or []
+social_links = mfe_config.get('FOOTER_SOCIAL_LINKS') or []
+extra_links = mfe_config.get('FOOTER_EXTRA_LINKS') or []
+
+copyright_text = mfe_config.get('FOOTER_COPYRIGHT', '')
+
+openedx_logo_src = mfe_config.get('FOOTER_OPENEDX_LOGO_SRC', '')
+openedx_logo_url = mfe_config.get('FOOTER_OPENEDX_LOGO_URL', 'https://open.edx.org/')
+openedx_logo_alt = mfe_config.get('FOOTER_OPENEDX_LOGO_ALT', 'Powered by Open edX')
+
+edunext_logo_src = mfe_config.get('FOOTER_EDUNEXT_LOGO_SRC', '')
+edunext_logo_url = mfe_config.get('FOOTER_EDUNEXT_LOGO_URL', 'https://www.edunext.co')
+edunext_logo_alt = mfe_config.get('FOOTER_EDUNEXT_LOGO_ALT', 'eduNEXT')
+
+# Legacy pages do not reliably expose Paragon tokens, so the palette is
+# self-contained here with an optional per-tenant override.
+bg_color = mfe_config.get('FOOTER_BACKGROUND_COLOR', '#1f2937')
+%>
+
+% if enabled:
+<div class="edunext-footer-wrapper">
+  <style>
+    .edunext-footer { background-color: ${bg_color}; color: #fff; }
+    .edunext-footer * { box-sizing: border-box; }
+    .edunext-footer .ef-content { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem 1.5rem; }
+    .edunext-footer .ef-top { display: flex; flex-wrap: wrap; gap: 3rem; align-items: flex-start; }
+    .edunext-footer .ef-brand { flex: 1 1 280px; min-width: 220px; max-width: 320px; }
+    .edunext-footer .ef-logo { max-height: 40px; width: auto; }
+    .edunext-footer .ef-tagline { margin-top: 1rem; font-size: .875rem; line-height: 1.6; opacity: .85; max-width: 280px; }
+    .edunext-footer .ef-nav-columns { display: flex; flex: 2 1 auto; flex-wrap: wrap; gap: 2.5rem; }
+    .edunext-footer .ef-nav-column { flex: 1 1 140px; min-width: 120px; }
+    .edunext-footer .ef-nav-title { font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem; padding-bottom: .5rem; border-bottom: 2px solid rgba(255,255,255,.35); display: inline-block; }
+    .edunext-footer .ef-nav-list { list-style: none; padding: 0; margin: 0; }
+    .edunext-footer .ef-nav-list li { margin-bottom: .5rem; }
+    .edunext-footer a.ef-link { color: rgba(255,255,255,.85); font-size: .875rem; text-decoration: none; }
+    .edunext-footer a.ef-link:hover { color: #fff; text-decoration: underline; }
+    .edunext-footer .ef-social { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; }
+    .edunext-footer .ef-social a { color: rgba(255,255,255,.85); display: inline-flex; }
+    .edunext-footer .ef-social a:hover { color: #fff; }
+    .edunext-footer .ef-divider { border: none; border-top: 1px solid rgba(255,255,255,.15); margin: 2rem 0 1.25rem; }
+    .edunext-footer .ef-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .edunext-footer .ef-powered-by { display: flex; align-items: center; gap: 1.5rem; }
+    .edunext-footer .ef-powered-by img { max-height: 30px; width: auto; }
+    .edunext-footer .ef-copyright { font-size: .8125rem; opacity: .7; margin: 0; }
+    .edunext-footer .ef-extra { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,.1); display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    @media (max-width: 768px) {
+      .edunext-footer .ef-top { flex-direction: column; gap: 2rem; }
+      .edunext-footer .ef-brand { max-width: 100%; }
+      .edunext-footer .ef-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+
+  <footer id="footer-edunext" class="edunext-footer" role="contentinfo">
+    <div class="ef-content">
+      <div class="ef-top">
+        <div class="ef-brand">
+          % if logo_src:
+          <a href="${logo_url}" target="${logo_target}" aria-label="${logo_alt}">
+            <img class="ef-logo" src="${logo_src}" alt="${logo_alt}"/>
+          </a>
+          % endif
+          % if description:
+          <p class="ef-tagline">${description}</p>
+          % endif
+          % if social_links:
+          <div class="ef-social" aria-label="${_('Follow us')}">
+            % for link in social_links:
+              <% svg = SOCIAL_SVG.get(link.get('key', '')) %>
+              % if svg and link.get('url'):
+              <a href="${link.get('url')}" target="_blank" rel="noopener noreferrer" aria-label="${link.get('label', link.get('key'))}">${svg | n}</a>
+              % endif
+            % endfor
+          </div>
+          % endif
+        </div>
+
+        % if nav_columns:
+        <div class="ef-nav-columns">
+          % for column in nav_columns:
+          <div class="ef-nav-column">
+            <h3 class="ef-nav-title">${column.get('title', '')}</h3>
+            <nav aria-label="${column.get('title', '')}">
+              <ul class="ef-nav-list">
+                % for link in column.get('links', []):
+                <li><a class="ef-link" href="${link.get('url', '#')}" target="${link.get('target', '_self')}">${link.get('txt', '')}</a></li>
+                % endfor
+              </ul>
+            </nav>
+          </div>
+          % endfor
+        </div>
+        % endif
+      </div>
+
+      <hr class="ef-divider"/>
+
+      <div class="ef-bottom">
+        % if openedx_logo_src or edunext_logo_src:
+        <div class="ef-powered-by">
+          <span class="ef-copyright">${_('Powered by')}</span>
+          % if openedx_logo_src:
+          <a href="${openedx_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${openedx_logo_src}" alt="${openedx_logo_alt}"/></a>
+          % endif
+          % if edunext_logo_src:
+          <a href="${edunext_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${edunext_logo_src}" alt="${edunext_logo_alt}"/></a>
+          % endif
+        </div>
+        % endif
+        <p class="ef-copyright">
+          % if copyright_text:
+          ${copyright_text}
+          % else:
+          &copy; ${_('All rights reserved')}
+          % endif
+        </p>
+      </div>
+
+      % if extra_links:
+      <div class="ef-extra">
+        % for link in extra_links:
+        <a class="ef-link" href="${link.get('url', '#')}" target="${link.get('target', '_self')}">${link.get('txt', '')}</a>
+        % endfor
+      </div>
+      % endif
+    </div>
+  </footer>
+</div>
+% endif
