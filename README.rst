@@ -51,8 +51,10 @@ build time and copied into each MFE source tree, so it compiles through the
 MFE's own webpack — SCSS and i18n stay intact — using the MFE's own
 react/paragon versions. No separate widget repo, no npm publishing.
 
-Styled MFEs: ``account``, ``communications``, ``discussions``, ``gradebook``,
-``learner-dashboard``, ``learning``, ``ora-grading``, ``profile``.
+Styled MFEs: ``account``, ``catalog``, ``communications``, ``discussions``,
+``gradebook``, ``learner-dashboard``, ``learning``, ``ora-grading``,
+``profile``. ``catalog`` must be built from its Open edX release branch
+(e.g. ``release/ulmo.3``), not ``master``, which uses frontend-base.
 (``authoring``/Studio uses a different slot and is a follow-up.)
 
 Pin the source ref for reproducible builds

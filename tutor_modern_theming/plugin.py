@@ -92,6 +92,7 @@ MODERN_THEMING_REPO = "https://github.com/eduNEXT/tutor-modern-theming.git"
 # follow-up.
 MODERN_THEMING_FOOTER_MFES = [
     "account",
+    "catalog",
     "communications",
     "discussions",
     "gradebook",
