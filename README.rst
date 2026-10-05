@@ -204,8 +204,8 @@ injects it into ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default
 Only that header exposes a whole-header slot; the ``learning`` and ``authoring``
 headers, and the mobile header, are follow-ups (see ``docs/decisions/0005``).
 
-Styled MFEs: ``account``, ``communications``, ``discussions``, ``gradebook``,
-``learner-dashboard``, ``ora-grading``, ``profile``.
+Styled MFEs: ``account``, ``catalog``, ``communications``, ``discussions``,
+``gradebook``, ``learner-dashboard``, ``ora-grading``, ``profile``.
 
 The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it, keeps the base logged-in / logged-out

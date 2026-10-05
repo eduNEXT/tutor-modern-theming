@@ -251,10 +251,12 @@ hooks.Filters.ENV_PATCHES.add_items(
 # Those are follow-ups; see docs/decisions/0005.
 
 # MFEs that render frontend-component-header's standard Header (i.e. expose
-# org.openedx.frontend.layout.header_desktop.v1). Excludes learning
-# (LearningHeader) and authoring (StudioHeader).
+# org.openedx.frontend.layout.header_desktop.v1). catalog's CatalogHeader wraps
+# that standard Header. Excludes learning (LearningHeader) and authoring
+# (StudioHeader).
 MODERN_THEMING_HEADER_MFES = [
     "account",
+    "catalog",
     "communications",
     "discussions",
     "gradebook",
