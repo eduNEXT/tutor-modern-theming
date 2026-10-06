@@ -167,19 +167,33 @@ and injects it into the catalog MFE's ``org.openedx.frontend.catalog.home_page.b
 slot, hiding the default banner. Same delivery as the footer (Option B); the
 component reuses the catalog MFE's own building blocks via its ``@src`` alias.
 
-Everything customizable comes from ``MFE_CONFIG`` (not varsify — varsify cannot
-emit the catalog-specific CSS vars):
+Everything customizable comes from ``MFE_CONFIG``, not varsify: varsify cannot
+emit the catalog-specific CSS variables. Use varsify only for Paragon colors.
+The eduNEXT banner only renders when ``ENABLE_EDUNEXT_HOME_BANNER`` is ``true``.
 
-- ``ENABLE_EDUNEXT_HOME_BANNER`` (bool, default ``True``): runtime kill-switch;
-  when false the default catalog banner renders instead.
-- ``HOME_BANNER_BACKGROUND_IMAGE``: absolute image URL, injected as the
-  ``--catalog-home-page-banner-background-image`` CSS var the banner SCSS reads.
-- ``HOME_BANNER_BACKGROUND_COLOR``: optional background color CSS var.
-- ``HOME_BANNER_TITLE`` / ``HOME_BANNER_SUBTITLE``: banner heading and subtitle
-  (fall back to i18n defaults when unset).
+Home banner configuration and fallbacks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use varsify only for Paragon colors; the banner image/title/subtitle are
-MFE_CONFIG, per-tenant, no rebuild.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_HOME_BANNER``
+     - The default catalog banner is shown instead of the eduNEXT banner.
+   * - ``HOME_BANNER_BACKGROUND_IMAGE``
+     - The catalog default: no background image.
+   * - ``HOME_BANNER_BACKGROUND_COLOR``
+     - The catalog default: Paragon ``--pgn-color-gray-500``.
+   * - ``HOME_BANNER_TITLE``
+     - Translated text "Welcome to {SITE_NAME}".
+   * - ``HOME_BANNER_SUBTITLE``
+     - Translated text "It works! Powered by the Open edX® Platform".
+
+The search field and the promo video keep the catalog behavior: the search field
+shows only when ``ENABLE_COURSE_DISCOVERY`` is ``true``, and the promo video uses
+``HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID``.
 
 Roadmap
 -------

@@ -1,101 +1,81 @@
-# ADR-0003: Banner del home de catalog como componente eduNEXT, configurable por MFE_CONFIG
+# ADR-0003: Banner del home del MFE catalog configurable por tenant
 
 ## Estado
 
-Aceptado, *2026-09-24*
+Aceptado, 2026-09-24
 
 ## Contexto
 
-El MFE `catalog` (frontend-app-catalog) renderiza el banner del home. Se quería
-personalizar: imagen de fondo, título y subtítulo, por tenant, sin forks.
+El MFE `catalog` muestra un banner en su página de inicio. Se requiere que cada
+tenant pueda configurar la imagen de fondo, el color de fondo, el título y el
+subtítulo de ese banner, sin mantener una copia modificada del MFE.
 
-### Lo que encontramos
+Situación del MFE `catalog` (`release/ulmo`):
 
-1. El upstream **ya soporta imagen de fondo por CSS var**. En
-   `src/home/components/home-banner/index.scss`:
-   ```scss
-   background-image: var(--catalog-home-page-banner-background-image, none);
-   background-color: var(--catalog-home-page-banner-background-color, var(--pgn-color-gray-500));
-   ```
-   Diseñado para setearse desde CSS/theme, no desde JSX.
-
-2. **Pero varsify no genera esas CSS vars.** Varsify (saas-css-varsify) emite
-   variables Paragon (`--pgn-*`); no produce `--catalog-home-page-banner-*`.
-   Por lo tanto no se pueden entregar por varsify. Varsify queda para colores.
-
-3. El título/subtítulo son texto; el upstream los saca de i18n
-   (`Welcome to {siteName}`), sin llave de config. No hay forma de
-   configurarlos sin tocar el componente.
-
-4. Existen slots en el catalog MFE, incluido
-   `org.openedx.frontend.catalog.home_page.banner` (`HomeBannerSlot`), que
-   envuelve `<HomeBanner/>` como contenido por defecto. El slot permite
-   ocultar el default e insertar un widget propio.
-
-5. Un piloto previo editó `HomeBanner.tsx`/`HomePageOverlay.tsx` directamente
-   (override de JSX, con URL de imagen hardcodeada). No versionado, no
-   configurable, por-fork. Se descarta.
-
-### Conclusión del contexto
-
-Como varsify no puede entregar la imagen de fondo y el título/subtítulo no son
-configurables en upstream, **sí hace falta un componente React** que lea esos
-valores de `MFE_CONFIG` y los inyecte (la imagen como CSS var inline; el texto
-directo). Es lo contrario del footer legacy: aquí el JSX es necesario, pero se
-mantiene en el slot, no como override del archivo del MFE.
+- La imagen y el color de fondo se leen de dos variables CSS
+  (`--catalog-home-page-banner-background-image` y
+  `--catalog-home-page-banner-background-color`). La herramienta de theming por
+  tenant (varsify) solo genera variables de Paragon (`--pgn-*`), así que no
+  puede definirlas.
+- El título y el subtítulo vienen de textos de i18n fijos (por ejemplo,
+  `Welcome to {siteName}`); no hay una llave de configuración para cambiarlos.
+- El banner está envuelto en el slot `org.openedx.frontend.catalog.home_page.banner`,
+  que permite ocultar el contenido por defecto e insertar un componente propio.
 
 ## Decisión
 
-Empaquetar un banner eduNEXT propio (`frontend/edunext-home-banner/`) y
-entregarlo con **Opción B** (misma mecánica que el footer, ver ADR-0002) al MFE
-`catalog`, inyectado en `home_page.banner` (Hide default + Insert). Todo lo
-personalizable viene de `MFE_CONFIG` vía `getConfig()`:
+Entregar un componente propio, `frontend/edunext-home-banner/`, al MFE `catalog`
+con el mismo mecanismo del footer (Opción B, ADR-0002), insertado en el slot
+`home_page.banner` en lugar del banner por defecto.
 
-- `HOME_BANNER_BACKGROUND_IMAGE` → CSS var inline
-  `--catalog-home-page-banner-background-image` que el SCSS del banner ya lee.
-- `HOME_BANNER_BACKGROUND_COLOR` → CSS var opcional.
-- `HOME_BANNER_TITLE` / `HOME_BANNER_SUBTITLE` → texto, con fallback i18n.
-- `ENABLE_EDUNEXT_HOME_BANNER` (default `True`) → kill-switch por tenant; cae al
-  banner default sin rebuild.
+El componente lee de `MFE_CONFIG`:
 
-El componente **reusa las piezas propias del catalog MFE** vía su alias `@src`
-(rutas, slots de promo video, el `.scss` del banner, y el banner default para el
-fallback), disponibles porque se copia al árbol `src/` del MFE en build. Así
-reproduce el elemento completo (search, promo video, overlay) sin duplicar
-lógica, y sólo cambia lo personalizable.
+- `HOME_BANNER_BACKGROUND_IMAGE` y `HOME_BANNER_BACKGROUND_COLOR`, que asigna a
+  las variables CSS que ya usa el banner del MFE.
+- `HOME_BANNER_TITLE` y `HOME_BANNER_SUBTITLE`.
+- `ENABLE_EDUNEXT_HOME_BANNER`: si está ausente o en `false`, se muestra el
+  banner por defecto del MFE.
 
-Reparto de responsabilidades de theming:
-- **varsify** → colores Paragon (`--pgn-*`).
-- **MFE_CONFIG** → imagen de fondo, título, subtítulo (lo que varsify no puede).
+Para el resto del banner (buscador, video promocional, estilos) el componente
+reutiliza las piezas del propio MFE `catalog` mediante su alias `@src`, sin
+duplicar esa lógica.
+
+División de responsabilidades de theming:
+
+- varsify: colores de Paragon.
+- `MFE_CONFIG`: imagen, color de fondo, título y subtítulo del banner.
 
 ## Consecuencias
 
-- El banner vive en el slot, no como override de `HomeBanner.tsx`. El piloto que
-  editaba el JSX del MFE se abandona.
-- Acoplado a la estructura interna del catalog MFE (imports `@src/...`): válido
-  porque se compila dentro del MFE y la versión del MFE está fijada por el
-  release. Cambios grandes de estructura upstream podrían requerir ajuste.
-- Sólo aplica al MFE `catalog`. En el workspace de prueba (ulmo) `catalog-mfe`
-  está deshabilitado y su build está roto (script `make build` incompatible con
-  `npm run build -- --config`, ver hilo de build); para probar el banner hay que
-  re-habilitar/arreglar `catalog-mfe` primero. No bloquea el empaquetado.
+**Positivas**
+
+- Cada tenant configura el banner sin reconstruir la imagen y sin modificar el
+  MFE.
+- El buscador y el video promocional siguen funcionando, porque se reutilizan
+  los componentes del MFE.
+
+**Costos y limitaciones**
+
+- El componente depende de la estructura interna del MFE `catalog` (rutas
+  importadas con `@src`). Un cambio de estructura en una nueva versión del MFE
+  puede requerir ajustes.
+- Requiere compilar `catalog` desde su rama de release de Open edX (por ejemplo,
+  `release/ulmo.3`). La rama `master` usa `frontend-base` y no es compatible con
+  el build de tutor-mfe para Ulmo.
+- Solo aplica al MFE `catalog`.
 
 ## Alternativas consideradas
 
-- **Setear la CSS var por varsify/CSS del theme.** Descartada: varsify no genera
-  `--catalog-home-page-banner-*`; no hay forma de entregarla por esa vía.
-- **Override directo de `HomeBanner.tsx`/`HomePageOverlay.tsx`** (el piloto).
-  Descartada: no configurable, por-fork, hardcodea la imagen; contradice el
-  objetivo de config por tenant.
-- **Un `@edx/brand` package** para el color de fondo. No cubre la imagen ni el
-  texto; y aún no haremos brand package (ver ADR-0002).
+- **Definir las variables CSS desde varsify o desde el CSS del theme.**
+  Descartada: varsify no genera variables fuera de Paragon, y la imagen y los
+  textos deben ser configurables por tenant.
+- **Modificar directamente `HomeBanner.tsx` en una copia del MFE.** Descartada:
+  no es configurable por tenant y obliga a mantener un fork.
+- **Paquete de marca (`@edx/brand`).** No cubre la imagen ni los textos.
 
 ## Referencias
 
-- ADR-0002 (footer, Opción B) · PR base `#6`.
-- `frontend-app-catalog@release/ulmo`:
+- ADR-0002: mecanismo de entrega (Opción B).
+- `openedx/frontend-app-catalog@release/ulmo.3`:
   `src/plugin-slots/HomeBannerSlot/index.tsx`,
   `src/home/components/home-banner/index.scss`.
-- Slots del catalog MFE: `home_page.banner`, `home_page.overlay_html`,
-  `course_about_page.course_image`, `course_about_page.intro_video_modal`,
-  `course_about_page.intro_video_modal_content`.
