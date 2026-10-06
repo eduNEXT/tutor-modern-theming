@@ -72,22 +72,53 @@ production:
 Configuration
 -------------
 
-The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. All keys
-are optional and fall back to sensible defaults; set them through Tutor
-settings or per-tenant (eox-tenant).
+The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. Set the keys
+through Tutor settings or per tenant (eox-tenant). The eduNEXT footer only
+renders when ``ENABLE_EDUNEXT_FOOTER`` is ``true``; every other key is optional,
+and when it is missing or empty the footer uses the fallback below.
 
-- ``ENABLE_EDUNEXT_FOOTER`` (bool, default ``True``): when false, the MFE
-  renders the default Open edX footer instead — a runtime kill-switch that
-  needs no rebuild.
-- ``FOOTER_LOGO_SRC`` / ``FOOTER_LOGO_URL`` / ``FOOTER_LOGO_ALT`` /
-  ``FOOTER_LOGO_TARGET``
-- ``FOOTER_DESCRIPTION``
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_FOOTER``
+     - The default Open edX footer is shown instead of the eduNEXT footer.
+   * - ``FOOTER_LOGO_SRC``
+     - ``LOGO_TRADEMARK_URL`` (the platform logo).
+   * - ``FOOTER_LOGO_URL``
+     - ``LMS_BASE_URL``.
+   * - ``FOOTER_LOGO_ALT``
+     - Translated text "Platform logo".
+   * - ``FOOTER_LOGO_TARGET``
+     - ``_self``.
+   * - ``FOOTER_DESCRIPTION``
+     - Translated text "Empowering learners everywhere with world-class
+       online education."
+   * - ``FOOTER_NAV_COLUMNS``
+     - Three columns (About, Legal, Connect) linking to ``LMS_BASE_URL`` +
+       ``/about``, ``/blog``, ``/careers``, ``/news``, ``/tos``, ``/privacy``,
+       ``/accessibility``, ``/contact`` and ``/support``. Some of these pages
+       may not exist on a given site; set this key in production.
+   * - ``FOOTER_SOCIAL_LINKS``
+     - edX/Open edX accounts on Facebook, X, LinkedIn, Instagram, YouTube
+       and GitHub. Set this key in production.
+   * - ``FOOTER_EXTRA_LINKS``
+     - No extra links.
+   * - ``FOOTER_COPYRIGHT``
+     - Translated text "© {current year} eduNEXT. All rights reserved."
+   * - ``FOOTER_OPENEDX_LOGO_SRC`` / ``_URL`` / ``_ALT``
+     - Official "Powered by Open edX" logo, linking to https://open.edx.org/.
+   * - ``FOOTER_EDUNEXT_LOGO_SRC`` / ``_URL`` / ``_ALT``
+     - eduNEXT logo, linking to https://www.edunext.co.
+
+Value formats:
+
 - ``FOOTER_NAV_COLUMNS``: ``[{ title, links: [{ txt, url, target }] }]``
 - ``FOOTER_SOCIAL_LINKS``: ``[{ key, url, label }]`` (key ∈ facebook, twitter,
   linkedin, instagram, youtube, github)
 - ``FOOTER_EXTRA_LINKS``: ``[{ txt, url, target }]``
-- ``FOOTER_COPYRIGHT``
-- ``FOOTER_OPENEDX_LOGO_*`` / ``FOOTER_EDUNEXT_LOGO_*``
 
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.

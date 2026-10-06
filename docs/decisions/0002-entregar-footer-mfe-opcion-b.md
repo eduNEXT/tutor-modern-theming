@@ -1,146 +1,99 @@
-# ADR-0002: Entregar el footer MFE con "Opción B" (componente in-repo copiado al árbol del MFE)
+# ADR-0002: Entrega del footer de los MFE como componente copiado al código fuente de cada MFE
 
 ## Estado
 
-Aceptado, *2026-09-23*
+Aceptado, 2026-09-23
 
 ## Contexto
 
-Open edX renderiza el footer en dos mundos que **no comparten código**:
+Open edX renderiza el footer con dos tecnologías independientes: las páginas
+legacy (Django/Mako) y los micro-frontends (MFE, React). La configuración de
+footer de cada tenant solo llega al footer legacy; los MFE muestran el footer
+por defecto de Open edX. El resultado es que un mismo usuario ve dos footers
+distintos dentro de la plataforma (`hosting-heimdall#844`).
 
-- **Legacy** (páginas Django/Mako): comprehensive theming, `footer.html`.
-- **MFE** (apps React): un componente React inyectado en un plugin slot.
+Para personalizar el footer de los MFE hay que insertar un componente React
+propio en el slot `org.openedx.frontend.layout.footer.v1`, usando el mecanismo
+`PLUGIN_SLOTS` de tutor-mfe. Hay dos formas de llevar el código de ese
+componente al build de cada MFE:
 
-El cliente ve footers distintos entre páginas legacy y MFE porque la config del
-tenant (`footer_*`) alimenta solo el footer legacy; el componente del MFE no lee
-esas llaves y muestra su footer por defecto (ver investigación en
-`eduNEXT/hosting-heimdall#844`). No es un bug: es la arquitectura. La única vía a
-paridad en el MFE es un componente React propio inyectado por `PLUGIN_SLOTS`.
-No existe "un solo código" que renderice ambos mundos; lo máximo alcanzable es
-**paridad visual** con dos plantillas que leen la misma config.
+- **Opción A, código en línea.** El plugin lee el archivo `.jsx` y lo inserta
+  como texto dentro de `env.config.jsx` mediante patches de Tutor. Es el patrón
+  que usa `tutor-indigo`. Como el código queda embebido en un solo archivo, no
+  puede importar otros archivos locales: los estilos (`.scss`) y los textos
+  traducibles (`messages.js`) no se pueden usar.
+- **Opción B, componente copiado al código fuente.** Durante el build de la
+  imagen, el plugin descarga este repositorio y copia la carpeta del componente
+  dentro de `src/` del MFE, antes de `npm run build`. El MFE lo compila como
+  cualquier módulo propio: con sus estilos, sus traducciones y las mismas
+  versiones de React y Paragon que usa el MFE.
 
-Ya teníamos un footer MFE maduro (token-driven Paragon, varsify-compatible,
-i18n, analytics, config por `MFE_CONFIG`) probado localmente en
-`frontend-app-learner-dashboard` vía `env.config.jsx`. Faltaba decidir **dónde
-hospedarlo y cómo inyectarlo** para instalarlo en todos los clientes de forma
-estándar.
+Requerimientos que condicionan la decisión:
 
-### Lo que encontramos por el camino
-
-1. **`tutor-indigo` es el referente canónico** de esta meta: un plugin pip que
-   tematiza legacy y MFE en un solo repo, con los componentes React dentro del
-   propio repo (`tutorindigo/components/*.jsx`). `tierratheme.py` de Cajamar es
-   ese mismo patrón. No hay que inventar arquitectura.
-
-2. **Indigo entrega los componentes con "Opción A": inline vía `ENV_PATCHES`.**
-   Lee cada `.jsx`, lo agrega como patch nombrado por archivo, y lo referencia
-   con `{{ patch("Componente.jsx") }}` en `mfe-env-config-runtime-definitions`,
-   más un patch de imports. Cajamar hace lo mismo.
-
-3. **Indigo evita el problema del SCSS por diseño**: sus componentes MFE **no**
-   importan `.scss` externo; el estilo llega del paquete `@edx/brand` (Paragon
-   tokens) y algo inline. Por eso el inline (A) le funciona limpio.
-
-4. **La Opción A obliga a aplanar** nuestro componente. Al inlinear el `.jsx`
-   como string en `env.config.jsx` no hay resolución de módulos para sus imports
-   locales: `import './EdunextFooter.scss'` y `import messages from './messages'`
-   se rompen. El SCSS habría que volverlo un bloque `<style>` inline y el i18n
-   (`messages.js`) se pierde para la extracción de traducciones (que no escanea
-   `env.config.jsx`). Los imports npm (react, paragon, frontend-platform) sí
-   funcionan en A vía el patch de imports.
-
-5. **La Opción B (estilo Warrior) conserva el multi-archivo intacto.** Un patch
-   de Dockerfile obtiene el repo por git y copia el componente al `src/` del MFE
-   **antes** de `npm run build`; webpack del MFE lo compila como cualquier módulo
-   → el `sass-loader` corre y el `.scss` + `messages.js` sobreviven sin tocar
-   nada. Además compila contra el `react`/`paragon` **del propio MFE**, evitando
-   duplicados.
-
-6. **Convivencia con proyectos que ya poseen `env.config.jsx`** (SOA/azimut, que
-   hacen `COPY` wholesale del archivo): la **entrega** (copiar al `src/`) es
-   siempre aditiva y no choca; el **wiring** del slot compite por el dueño del
-   `env.config.jsx`. Regla: un solo dueño por `env.config.jsx` de cada MFE y un
-   solo footer por slot. En proyectos wholesale, el plugin solo entrega y el
-   override del proyecto hace el wiring.
-
-7. **Restricción del CTO**: menos repositorios y sin publicar en npm; instalar
-   por enlace de GitHub + rama/tag. Esto descartó el repo separado
-   `frontend-render-widgets` (ver ADR-0001) y el `npm publish`.
-
-8. **Orden del template `env.config.jsx` de tutor-mfe** (v21 y v22): dentro de
-   `setConfig()`, el patch `mfe-env-config-runtime-definitions-<app>` se emite
-   **antes** de los `addPlugins()` de ese app, con `DIRECT_PLUGIN` /
-   `PLUGIN_OPERATIONS` ya en scope. Es decir: un `require()` que define
-   `EdunextFooter` y, a continuación, el slot que lo referencia — sin
-   temporal-dead-zone.
+- **Gobernanza de repositorios:** minimizar la cantidad de repositorios y no
+  publicar paquetes en npm. Los plugins se instalan desde GitHub por rama o tag.
+- El componente está organizado en varios archivos: JSX, estilos SCSS basados en
+  tokens de Paragon y mensajes de i18n.
 
 ## Decisión
 
-Hospedar el footer **dentro de este repo** (`frontend/edunext-footer/`, un solo
-repo, sin npm) y entregarlo con **Opción B** por cada MFE con `footer.v1`:
+Alojar el componente en este repositorio (`frontend/edunext-footer/`) y
+entregarlo con la **Opción B** a cada MFE que expone `footer.v1`: `account`,
+`catalog`, `communications`, `discussions`, `gradebook`, `learner-dashboard`,
+`learning`, `ora-grading` y `profile`.
 
-1. **Delivery** — patch `mfe-dockerfile-pre-npm-build-<mfe>`:
-   `ADD --keep-git-dir=true <este-repo>#{{ MODERN_THEMING_GIT_REF }}` y
-   `cp -r .../frontend/edunext-footer src/edunext-footer`.
-2. **Definición** — patch `mfe-env-config-runtime-definitions-<mfe>`:
-   `const EdunextFooter = require('./src/edunext-footer').default;`
-   (`require`, no import top-level, porque `env.config.jsx` es compartido).
-3. **Wiring** — `PLUGIN_SLOTS.add_item((mfe, "org.openedx.frontend.layout.footer.v1", <Hide default + Insert EdunextFooter>))`,
-   el API estándar de tutor-mfe (mismo que indigo). El orden del template
-   garantiza que la definición precede al registro.
+Para cada MFE, el plugin registra:
 
-`MODERN_THEMING_GIT_REF` (default `master`) selecciona el ref; en producción se
-fija a un tag/SHA para builds reproducibles. `ENABLE_EDUNEXT_FOOTER` (default
-`True`) es un kill-switch por tenant que cae al footer default sin rebuild.
+1. Patch `mfe-dockerfile-pre-npm-build-<mfe>`: descarga este repositorio en la
+   referencia `MODERN_THEMING_GIT_REF` y copia el componente a
+   `src/edunext-footer`.
+2. Patch `mfe-env-config-runtime-definitions-<mfe>`: carga el componente en
+   `env.config.jsx`.
+3. Entrada en `PLUGIN_SLOTS`: oculta el contenido por defecto del slot e inserta
+   `EdunextFooter`.
 
-Se aplican dos correcciones al componente traído del piloto: el flag estaba
-invertido (`if (cfg?.ENABLE_EDUNEXT_FOOTER)` → `if (!cfg?.ENABLE_EDUNEXT_FOOTER)`)
-y un `useMemo` corría después de un `return` condicional (violación de rules of
-hooks); ahora todos los hooks corren antes del early return.
-
-### Por qué B y no A, por ahora
-
-- Conserva el componente **ordenado y multi-archivo** (`.jsx` + `.scss` +
-  `messages.js`) y el **i18n** intacto — lo que A rompería.
-- **No vamos a hacer un `@edx/brand` package todavía**, que es justo la pieza que
-  hace que A brille (mover el estilo a tokens del brand). Sin ese paquete, el
-  SCSS local es la forma ordenada de estilar y B lo respeta.
-- Compila contra el `react`/`paragon` del MFE anfitrión → sin duplicados.
-- Cumple la restricción del CTO: 1 repo, sin npm, instalación por GitHub + ref.
+El contenido se configura por tenant con las llaves `FOOTER_*` de `MFE_CONFIG`.
+La llave `ENABLE_EDUNEXT_FOOTER` activa el componente: si está ausente o en
+`false`, se muestra el footer por defecto de Open edX, sin reconstruir la imagen.
 
 ## Consecuencias
 
-- Un `ADD` de git por MFE (8 MFEs). El repo debe ser alcanzable en build
-  (público, o proveer credenciales) y conviene fijar `MODERN_THEMING_GIT_REF`.
-- `authoring`/Studio (slot `studio_footer.v1`) y el header quedan para follow-up.
-- No es el patrón "oficial" (indigo usa A); es una variante válida (Warrior) que
-  respeta nuestras restricciones actuales.
-- Migración futura a A queda abierta: cuando exista un `@edx/brand` package y el
-  texto sea config-driven, se puede pasar a inline estilo indigo. El wiring del
-  slot y la lista de MFEs no cambian; el refactor es local al componente.
+**Positivas**
+
+- El componente conserva su estructura (JSX, SCSS y traducciones) y se compila
+  con las dependencias del propio MFE, sin duplicar React ni Paragon.
+- Un solo repositorio y ninguna publicación en npm.
+- Activar o desactivar el footer por tenant no requiere un nuevo build.
+
+**Costos y limitaciones**
+
+- Cada MFE descarga este repositorio durante el build. El repositorio debe ser
+  accesible desde el entorno de build, y en producción conviene fijar
+  `MODERN_THEMING_GIT_REF` a un tag o commit para que el build sea reproducible.
+- En proyectos que reemplazan por completo el `env.config.jsx` de un MFE, el
+  registro del slot debe hacerse en el archivo del proyecto; el plugin solo
+  entrega el componente.
+- Studio (`authoring`) usa un slot distinto (`studio_footer.v1`) y no está
+  cubierto por esta decisión.
 
 ## Alternativas consideradas
 
-- **Opción A (inline `ENV_PATCHES`, patrón indigo/Cajamar).** Es el estándar
-  upstream y evita el `ADD` por MFE, pero exige aplanar el componente (SCSS →
-  `<style>`, perder la extracción i18n) y rinde mejor con un brand package que
-  hoy no haremos. Diferida.
-- **Repo separado `frontend-render-widgets` instalado como módulo npm.**
-  Descartada en ADR-0001 (skew de versión, clones sin pin, duplicación de deps,
-  y va contra "menos repos / sin npm").
-- **Mutar `config.pluginSlots` a mano en el patch runtime** en vez de usar
-  `PLUGIN_SLOTS`. Descartada: `PLUGIN_SLOTS` es el API soportado y el template ya
-  emite el `addPlugins()` en el orden correcto.
+- **Opción A, código en línea (patrón de `tutor-indigo`).** Evita la descarga
+  del repositorio por MFE, pero obliga a reunir el componente en un solo
+  archivo, mover los estilos a un bloque `<style>` y dejar los textos fuera de
+  la extracción de traducciones. Queda como evolución posible dentro de una
+  estrategia de adopción incremental: si en el futuro los estilos se
+  centralizan en un paquete de marca (`@edx/brand`), el componente puede
+  migrarse a la Opción A sin cambiar el registro del slot.
+- **Repositorio independiente publicado en npm (`frontend-render-widgets`).**
+  Descartada por los requerimientos de gobernanza de repositorios (ver
+  ADR-0001).
 
 ## Referencias
 
-- PR base: `eduNEXT/tutor-modern-theming#6` · ADR-0001 (remoción de
-  `frontend-render-widgets`).
-- Investigación: `eduNEXT/hosting-heimdall#844` (gap legacy ↔ MFE).
-- `overhangio/tutor-indigo` (Opción A canónica) ·
-  `overhangio/tutor-mfe` `templates/mfe/build/mfe/env.config.jsx` (orden del
-  template, v21/v22).
-- `eduNEXT-collab/cajamar-azimut-project`: `build/plugins/tierratheme.py`,
-  `src/themes/tierra/components/TierraFooter.jsx`.
-- Patrón de delivery por `ADD` git: `warrior-azimut-project`
-  `build/plugins/warrior-learner-dashboard-plugin.py`.
+- ADR-0001: remoción de `frontend-render-widgets`.
+- `eduNEXT/hosting-heimdall#844`: diferencias entre footer legacy y MFE.
+- `overhangio/tutor-indigo`: implementación de referencia de la Opción A.
+- `overhangio/tutor-mfe`: `templates/mfe/build/mfe/env.config.jsx`.
+- `warrior-azimut-project`: `build/plugins/warrior-learner-dashboard-plugin.py`,
+  antecedente de la Opción B.
