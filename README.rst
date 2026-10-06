@@ -113,12 +113,48 @@ and when it is missing or empty the footer uses the fallback below.
    * - ``FOOTER_EDUNEXT_LOGO_SRC`` / ``_URL`` / ``_ALT``
      - eduNEXT logo, linking to https://www.edunext.co.
 
-Value formats:
+Example of the structured keys, as they go in ``MFE_CONFIG`` (Tutor settings or
+the tenant configuration):
 
-- ``FOOTER_NAV_COLUMNS``: ``[{ title, links: [{ txt, url, target }] }]``
-- ``FOOTER_SOCIAL_LINKS``: ``[{ key, url, label }]`` (key ∈ facebook, twitter,
-  linkedin, instagram, youtube, github)
-- ``FOOTER_EXTRA_LINKS``: ``[{ txt, url, target }]``
+.. code-block:: json
+
+   {
+     "ENABLE_EDUNEXT_FOOTER": true,
+     "FOOTER_LOGO_SRC": "https://example.com/static/logo.png",
+     "FOOTER_LOGO_URL": "https://example.com",
+     "FOOTER_DESCRIPTION": "Learn anytime, anywhere.",
+     "FOOTER_NAV_COLUMNS": [
+       {
+         "title": "About",
+         "links": [
+           { "txt": "About us", "url": "https://example.com/about" },
+           { "txt": "Blog", "url": "https://blog.example.com", "target": "_blank" }
+         ]
+       },
+       {
+         "title": "Legal",
+         "links": [
+           { "txt": "Terms of Service", "url": "https://example.com/tos" },
+           { "txt": "Privacy Policy", "url": "https://example.com/privacy" }
+         ]
+       }
+     ],
+     "FOOTER_SOCIAL_LINKS": [
+       { "key": "linkedin", "url": "https://www.linkedin.com/company/example", "label": "LinkedIn" },
+       { "key": "github", "url": "https://github.com/example", "label": "GitHub" }
+     ],
+     "FOOTER_EXTRA_LINKS": [
+       { "txt": "Accessibility", "url": "https://example.com/accessibility" }
+     ],
+     "FOOTER_COPYRIGHT": "© 2026 Example Inc. All rights reserved."
+   }
+
+- ``FOOTER_NAV_COLUMNS``: each column has a ``title`` and a list of ``links``.
+- Links (``FOOTER_NAV_COLUMNS`` and ``FOOTER_EXTRA_LINKS``): ``txt`` and ``url``
+  are required; ``target`` is optional and defaults to ``_self``.
+- ``FOOTER_SOCIAL_LINKS``: ``key`` selects the icon and must be one of
+  ``facebook``, ``twitter``, ``linkedin``, ``instagram``, ``youtube`` or
+  ``github``; ``label`` is the accessible name of the link.
 
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
@@ -127,7 +163,6 @@ Roadmap
 -------
 
 - MFE header slot widgets.
-- ``authoring``/Studio footer (``studio_footer.v1``).
 - Optional ``@edx/brand`` package for global token defaults.
 
 Contributing
