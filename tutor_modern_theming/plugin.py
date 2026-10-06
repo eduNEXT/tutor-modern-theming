@@ -307,8 +307,8 @@ for mfe in MODERN_THEMING_HEADER_MFES:
     PLUGIN_SLOTS.add_item((mfe, HEADER_DESKTOP_SLOT_ID, HEADER_DESKTOP_SLOT_CONFIG))
 
 # Enable the header by default. Tenants can set
-# MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = False to render the header plainly
-# (base elements, no eduNEXT chrome/extras) without rebuilding.
+# MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = False to fall back to the default
+# Open edX desktop header without rebuilding.
 hooks.Filters.ENV_PATCHES.add_items(
     [
         (

@@ -3,6 +3,10 @@ import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { AppContext } from '@edx/frontend-platform/react';
 import { sendTrackEvent } from '@edx/frontend-platform/analytics';
+// DesktopHeader is the slot's default content. It is not re-exported by the
+// package index, so it is imported from dist (present in 6.x and 8.x).
+// Rendering it directly (not DesktopHeaderSlot) does not recurse into the slot.
+import DefaultDesktopHeader from '@edx/frontend-component-header/dist/desktop-header/DesktopHeader';
 import {
   Nav,
   Dropdown,
@@ -65,10 +69,12 @@ const EdunextDesktopHeader = (props) => {
     });
   };
 
-  // Runtime kill-switch: when disabled, render the base elements plainly (no
-  // eduNEXT skin, no configured extras). This is the closest to the default
-  // header we can produce from inside the header slot.
-  const enabled = cfg.ENABLE_EDUNEXT_HEADER !== false;
+  // Runtime kill-switch: when ENABLE_EDUNEXT_HEADER is falsy, fall back to
+  // the default Open edX desktop header with the props the slot received.
+  // Placed after all hooks so the rules of hooks are respected.
+  if (!cfg?.ENABLE_EDUNEXT_HEADER) {
+    return <DefaultDesktopHeader {...props} />;
+  }
 
   const renderMainMenu = () => (
     <Nav className="ehd-main-nav" aria-label={formatMessage(messages.mainMenu)}>
@@ -130,7 +136,7 @@ const EdunextDesktopHeader = (props) => {
   };
 
   return (
-    <header className={enabled ? 'edunext-header' : 'edunext-header edunext-header--plain'}>
+    <header className="edunext-header">
       <a className="sr-only sr-only-focusable" href="#main">
         {formatMessage(messages.skipNav)}
       </a>
@@ -144,7 +150,7 @@ const EdunextDesktopHeader = (props) => {
           <img className="ehd-logo" src={logoSrc} alt={logoAlt} />
         </a>
 
-        {enabled && renderMainMenu()}
+        {renderMainMenu()}
 
         <div className="ehd-right ml-auto d-flex align-items-center">
           {loggedIn ? renderUserMenu() : renderLoggedOut()}

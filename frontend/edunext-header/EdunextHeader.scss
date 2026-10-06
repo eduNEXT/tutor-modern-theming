@@ -49,15 +49,6 @@
     box-shadow: var(--pgn-elevation-box-shadow-lg, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
   }
 
-  // Plain mode (kill-switch): drop the eduNEXT chrome, keep base layout.
-  &.edunext-header--plain {
-    border-bottom: 1px solid var(--pgn-color-light-400);
-
-    .ehd-nav-link {
-      color: var(--pgn-color-gray-700) !important;
-    }
-  }
-
   @media (max-width: 768px) {
     .ehd-main-nav {
       display: none;

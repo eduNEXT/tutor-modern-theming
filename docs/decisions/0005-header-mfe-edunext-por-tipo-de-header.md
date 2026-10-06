@@ -50,8 +50,8 @@ Cubrir el header **por tipo**, empezando por el caso con slot completo:
     anónimo → botones Sign in / Register (Paragon).
   - Estilos en `EdunextHeader.scss` con tokens Paragon (`--pgn-*`), varsify por
     tenant, igual que `EdunextFooter.scss`.
-  - Kill-switch `MFE_CONFIG.ENABLE_EDUNEXT_HEADER` (default `True`): en `False`
-    renderiza los elementos base en modo plano (sin chrome/extras eduNEXT).
+  - Kill-switch `MFE_CONFIG.ENABLE_EDUNEXT_HEADER`: ausente o en `False` renderiza
+    el `DesktopHeader` original de Open edX con los props del slot.
 
 Pendiente (follow-ups, este ADR se ampliará):
 - **Mobile** del header estándar (`header_mobile.v1`) — mismo patrón.
@@ -63,9 +63,6 @@ Pendiente (follow-ups, este ADR se ampliará):
 
 - El header estándar (desktop) de ~7 MFE queda config-driven y consistente,
   reusando la auth base. Learning/Studio/mobile todavía no.
-- Kill-switch imperfecto: desde dentro del slot no se puede renderizar el header
-  default del paquete (recursaría), así que "apagado" = render plano de nuestro
-  componente, no el header stock exacto. Documentado.
 - El delivery clona el repo a un `/tmp` propio (`-header`) para no colisionar con
   el `ADD` del footer en los MFE compartidos.
 - Legacy (Mako) del header queda **fuera de este cambio** por decisión de alcance

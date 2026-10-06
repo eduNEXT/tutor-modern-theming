@@ -211,8 +211,8 @@ The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it, keeps the base logged-in / logged-out
 buttons, and reads ``MFE_CONFIG``:
 
-- ``ENABLE_EDUNEXT_HEADER`` (bool, default ``True``): when false, renders the
-  base elements plainly (no eduNEXT chrome/extras).
+- ``ENABLE_EDUNEXT_HEADER`` (bool): when missing or false, the default Open
+  edX desktop header is shown instead.
 - ``HEADER_MAIN_MENU``: ``[{ txt, url, target }]`` — main navigation links
   (falls back to the menu the host MFE passes to the slot).
 - ``HEADER_USER_MENU_EXTRA_LINKS``: ``[{ txt, url }]`` — appended to the user
