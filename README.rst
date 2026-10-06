@@ -159,6 +159,42 @@ the tenant configuration):
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
 
+MFE Home Banner (catalog)
+-------------------------
+
+The plugin also ships a custom home banner (``frontend/edunext-home-banner/``)
+and injects it into the catalog MFE's ``org.openedx.frontend.catalog.home_page.banner``
+slot, hiding the default banner. Same delivery as the footer (Option B); the
+component reuses the catalog MFE's own building blocks via its ``@src`` alias.
+
+Everything customizable comes from ``MFE_CONFIG``, not varsify: varsify cannot
+emit the catalog-specific CSS variables. Use varsify only for Paragon colors.
+The eduNEXT banner only renders when ``ENABLE_EDUNEXT_HOME_BANNER`` is ``true``.
+
+Home banner configuration and fallbacks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_HOME_BANNER``
+     - The default catalog banner is shown instead of the eduNEXT banner.
+   * - ``HOME_BANNER_BACKGROUND_IMAGE``
+     - The catalog default: no background image.
+   * - ``HOME_BANNER_BACKGROUND_COLOR``
+     - The catalog default: Paragon ``--pgn-color-gray-500``.
+   * - ``HOME_BANNER_TITLE``
+     - Translated text "Welcome to {SITE_NAME}".
+   * - ``HOME_BANNER_SUBTITLE``
+     - Translated text "It works! Powered by the Open edX® Platform".
+
+The search field and the promo video keep the catalog behavior: the search field
+shows only when ``ENABLE_COURSE_DISCOVERY`` is ``true``, and the promo video uses
+``HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID``.
+
 Roadmap
 -------
 
