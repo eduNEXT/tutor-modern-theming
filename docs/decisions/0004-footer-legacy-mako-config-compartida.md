@@ -42,7 +42,9 @@ No compilar React a legacy. En su lugar, `tutor-modern-theming` entrega **dos
 renderers delgados** que leen las **mismas llaves `FOOTER_*` de `MFE_CONFIG`**:
 
 - **MFE**: `frontend/edunext-footer/` (React), vía `PLUGIN_SLOTS` (ADR-0002).
-- **Legacy**: `legacy/footer.html` (Mako), que lee `settings.MFE_CONFIG` con las
+- **Legacy**: `legacy/footer.html` (Mako), que resuelve `MFE_CONFIG` igual que
+  `/api/mfe_config/v1` (tenant/site config vía `configuration_helpers`, con
+  `settings.MFE_CONFIG` de respaldo), con las
   mismas llaves (`FOOTER_LOGO_SRC`, `FOOTER_DESCRIPTION`, `FOOTER_NAV_COLUMNS`,
   `FOOTER_SOCIAL_LINKS`, `FOOTER_EXTRA_LINKS`, `FOOTER_COPYRIGHT`,
   `FOOTER_OPENEDX_LOGO_*`, `FOOTER_EDUNEXT_LOGO_*`, `ENABLE_EDUNEXT_FOOTER`).

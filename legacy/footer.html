@@ -10,6 +10,7 @@
 <%namespace name='static' file='static_content.html'/>
 <%!
 from django.conf import settings
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from django.utils.translation import gettext as _
 
 
@@ -24,7 +25,12 @@ SOCIAL_SVG = {
 %>
 
 <%
-mfe_config = getattr(settings, 'MFE_CONFIG', {}) or {}
+# Resolve MFE_CONFIG exactly like the MFE config API (/api/mfe_config/v1) that
+# feeds the React footer: tenant/site configuration first, Django settings as
+# the fallback. Keeps both renderers on the same per-tenant values.
+mfe_config = configuration_helpers.get_value(
+    'MFE_CONFIG', getattr(settings, 'MFE_CONFIG', {}),
+) or {}
 
 # Same default as the React footer: off unless explicitly enabled. When off,
 # delegate to the footer this one replaced (see the else branch at the end).
