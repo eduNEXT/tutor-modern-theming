@@ -1,91 +1,90 @@
-# ADR-0005: Header eduNEXT en los MFE — por tipo de header
+# ADR-0005: Header eduNEXT en los MFE, implementado por tipo de header
 
 ## Estado
 
-Aceptado (parcial: header estándar desktop), *2026-09-25*
+Aceptado, 2026-09-25. Cubre el header estándar de escritorio; los demás tipos
+de header quedan para decisiones posteriores.
 
 ## Contexto
 
-Se quería el mismo patrón del footer para el header: un componente eduNEXT
-config-driven por `MFE_CONFIG`, con Paragon, on/off y links configurables,
-reusando los botones base (login / usuario logueado) y permitiendo agregar
-opciones al dropdown de usuario. Referencia del modelo de config: el header
-legacy `bragi` usa `theming.options('header', 'header_links' / 'header_top' /
-'header_langselector')`.
+Se requiere un header personalizable por tenant en los MFE, con el mismo
+enfoque del footer: componente propio, estilos con tokens de Paragon y
+configuración por `MFE_CONFIG` (menú principal y enlaces adicionales en el menú
+de usuario), conservando el inicio de sesión y el menú de usuario de Open edX.
 
-### Lo que encontramos (por qué el header NO es one-shot como el footer)
+La librería `frontend-component-header` no tiene un header único, sino tres
+tipos con puntos de extensión distintos:
 
-`frontend-component-header` expone **tres headers distintos**, cada uno con su
-propia superficie de slots:
+| Tipo | MFE que lo usan | Slot que permite reemplazar el header completo |
+|---|---|---|
+| Estándar (`Header`) | account, catalog, communications, discussions, gradebook, learner-dashboard, ora-grading, profile | Sí: `header_desktop.v1` (escritorio) y `header_mobile.v1` (móvil) |
+| Learning (`LearningHeader`) | learning | No; solo slots parciales (logo, ayuda, menú de usuario) |
+| Studio (`StudioHeader`) | authoring | No; slots propios distintos |
 
-1. **Standard** (`DesktopHeader` + `MobileHeader`) — lo usan la mayoría de MFE
-   (account, profile, discussions, gradebook, communications, ora-grading,
-   learner-dashboard, authn). **Sí** tiene slots de header completo:
-   `header_desktop.v1` y `header_mobile.v1` (Hide default + Insert), como el
-   footer pero ×2 (desktop y mobile).
-2. **LearningHeader** — el MFE `learning` (courseware). **No** hay slot de header
-   completo; solo granulares (`header_learning_user_menu.v1`, `LearningLogoSlot`,
-   `LearningHelpSlot`, `LearningHeaderActionsSlot`).
-3. **StudioHeader** — `authoring`. Superficie de slots propia, distinta.
-
-Además, `header_desktop.v1` (`DesktopHeaderSlot`) usa `mergeProps: true` y pasa
-al widget insertado los mismos props que recibe `DesktopHeader` (mainMenu,
-userMenu, avatar, loggedIn, logo…). Y la data de auth está en `AppContext`
-(`authenticatedUser`), igual que la usa `LearningHeader`.
+El slot `header_desktop.v1` entrega al componente insertado los mismos datos
+que recibe el header por defecto (menú, logo, avatar, estado de sesión), y los
+datos del usuario autenticado están disponibles en `AppContext`.
 
 ## Decisión
 
-Cubrir el header **por tipo**, empezando por el caso con slot completo:
+Implementar el header por tipo, empezando por el **header estándar de
+escritorio**:
 
-- **Standard desktop (este cambio)**: `frontend/edunext-header/` con
-  `EdunextDesktopHeader`, inyectado en `header_desktop.v1` (Hide default +
-  Insert) vía Opción B (ADR-0002), en los MFE que usan el header estándar.
-  El componente:
-  - Lee la auth de `AppContext` (login state, username, avatar) — **no**
-    reconstruye la lógica de sesión; reusa lo que ya existe.
-  - Reusa `props.mainMenu` del slot si el MFE lo pasó; `MFE_CONFIG.HEADER_MAIN_MENU`
-    tiene precedencia.
-  - Botones base: usuario logueado → dropdown Paragon (Dashboard / Profile /
-    Account / Sign Out) con extras de `MFE_CONFIG.HEADER_USER_MENU_EXTRA_LINKS`;
-    anónimo → botones Sign in / Register (Paragon).
-  - Estilos en `EdunextHeader.scss` con tokens Paragon (`--pgn-*`), varsify por
-    tenant, igual que `EdunextFooter.scss`.
-  - Kill-switch `MFE_CONFIG.ENABLE_EDUNEXT_HEADER`: ausente o en `False` renderiza
-    el `DesktopHeader` original de Open edX con los props del slot.
+- Componente `frontend/edunext-header/` (`EdunextDesktopHeader`), entregado con
+  la Opción B (ADR-0002) e insertado en `header_desktop.v1` en los MFE de la
+  tabla anterior que usan el header estándar.
+- Usa los datos de sesión de `AppContext` y del slot; no reimplementa la
+  autenticación.
+- Configuración en `MFE_CONFIG`: `HEADER_MAIN_MENU` (menú principal) y
+  `HEADER_USER_MENU_EXTRA_LINKS` (enlaces adicionales en el menú de usuario).
+- Estilos con tokens de Paragon, personalizables por tenant con varsify.
+- `ENABLE_EDUNEXT_HEADER` activa el componente, igual que en el footer y el
+  banner: si está ausente o en `false`, se muestra el header de escritorio por
+  defecto de Open edX (`DesktopHeader`) con los mismos datos que entrega el
+  slot, sin reconstruir la imagen.
 
-Pendiente (follow-ups, este ADR se ampliará):
-- **Mobile** del header estándar (`header_mobile.v1`) — mismo patrón.
-- **LearningHeader** y **StudioHeader** — sin slot completo: se cubren con slots
-  granulares (logo, user-menu extras) o, para reshape total, con override de JSX
-  (más frágil, acoplado a versión). Decisión pendiente por-header.
+Quedan fuera de esta decisión, para ADR posteriores:
+
+- Header estándar móvil (`header_mobile.v1`).
+- `LearningHeader` y `StudioHeader`, que solo admiten personalización parcial
+  o requieren modificar el componente del MFE.
+- Header de las páginas legacy (Mako).
 
 ## Consecuencias
 
-- El header estándar (desktop) de ~7 MFE queda config-driven y consistente,
-  reusando la auth base. Learning/Studio/mobile todavía no.
-- El delivery clona el repo a un `/tmp` propio (`-header`) para no colisionar con
-  el `ADD` del footer en los MFE compartidos.
-- Legacy (Mako) del header queda **fuera de este cambio** por decisión de alcance
-  (esta etapa es solo JSX).
+**Positivas**
+
+- El header de escritorio de 8 MFE queda configurable por tenant y con un
+  diseño consistente.
+- Desactivarlo por tenant devuelve el header original de Open edX.
+- El inicio de sesión y el menú de usuario siguen dependiendo de Open edX, sin
+  lógica duplicada.
+
+**Costos y limitaciones**
+
+- Para mostrar el header por defecto, el componente importa `DesktopHeader`
+  desde la carpeta `dist` de `frontend-component-header`, porque la librería no
+  lo exporta en su índice. Si una versión futura cambia esa ruta, el import
+  debe ajustarse.
+- En `learning`, `authoring`, en móvil y en las páginas legacy el header sigue
+  siendo el de Open edX, hasta que se tomen las decisiones pendientes.
+- El componente se descarga en una carpeta temporal propia durante el build
+  para no colisionar con la del footer en los MFE que reciben ambos.
 
 ## Alternativas consideradas
 
-- **Un solo componente para reemplazar los 3 headers.** Imposible: son tres
-  componentes con superficies de slot distintas; learning/studio no tienen slot
-  de header completo.
-- **Reconstruir la auth (login/avatar/user-menu) desde cero.** Descartada:
-  frágil; `AppContext` + los props del slot ya la proveen.
-- **Skin solo por CSS (como SOA)** para los 3 uniformemente. Válido para color,
-  pero no permite reshape ni links configurables por menú. Complementario, no
-  sustituto.
+- **Un único componente para los tres tipos de header.** No es viable: Learning
+  y Studio no tienen un slot que permita reemplazar el header completo.
+- **Reimplementar inicio de sesión, avatar y menú de usuario.** Descartada:
+  duplica lógica que Open edX ya provee por `AppContext` y por el slot.
+- **Personalización solo con CSS.** Permite cambiar colores en los tres tipos,
+  pero no permite configurar menús ni la estructura del header. Es
+  complementaria, no sustituta.
 
 ## Referencias
 
-- ADR-0002 (Opción B, footer) · ADR-0004 (una config, varios renderers).
-- `openedx/frontend-component-header`: `desktop-header/DesktopHeader.jsx`,
-  `learning-header/LearningHeader.jsx`, `plugin-slots/DesktopHeaderSlot`,
-  `plugin-slots/*` (slots de header).
-- `eduNEXT/ednx-saas-themes` `edx-platform/bragi/lms/templates/header/*`
-  (modelo de config `theming.options`).
-- Precedente híbrido: `soa-your-cluster-project/prod` (CSS skin + inserción por
-  slot + override JSX de Studio + Mako legacy).
+- ADR-0002: mecanismo de entrega (Opción B).
+- `openedx/frontend-component-header`: `src/Header.jsx`,
+  `src/plugin-slots/DesktopHeaderSlot`, `src/learning-header/LearningHeader.jsx`.
+- `eduNEXT/ednx-saas-themes`: `edx-platform/bragi/lms/templates/header/*`,
+  modelo de configuración del header legacy.

@@ -208,15 +208,44 @@ Styled MFEs: ``account``, ``catalog``, ``communications``, ``discussions``,
 ``gradebook``, ``learner-dashboard``, ``ora-grading``, ``profile``.
 
 The header reuses the session data from ``AppContext`` (login state, avatar,
-username) instead of rebuilding it, keeps the base logged-in / logged-out
-buttons, and reads ``MFE_CONFIG``:
+username) instead of rebuilding it and keeps the base logged-in / logged-out
+buttons.
 
-- ``ENABLE_EDUNEXT_HEADER`` (bool): when missing or false, the default Open
-  edX desktop header is shown instead.
-- ``HEADER_MAIN_MENU``: ``[{ txt, url, target }]`` — main navigation links
-  (falls back to the menu the host MFE passes to the slot).
-- ``HEADER_USER_MENU_EXTRA_LINKS``: ``[{ txt, url }]`` — appended to the user
-  dropdown, before "Sign Out".
+Header configuration and fallbacks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The eduNEXT header only renders when ``ENABLE_EDUNEXT_HEADER`` is ``true``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_HEADER``
+     - The default Open edX desktop header is shown instead of the eduNEXT
+       header.
+   * - ``HEADER_MAIN_MENU``
+     - The main menu that the host MFE passes to the header; if it passes
+       none, no main menu.
+   * - ``HEADER_USER_MENU_EXTRA_LINKS``
+     - User menu with only Dashboard, Profile, Account and Sign Out.
+   * - ``LOGO_URL``
+     - The logo the host MFE passes to the header.
+   * - ``SITE_NAME``
+     - The logo alt text the host MFE passes; otherwise "Home".
+   * - ``LOGIN_URL`` / ``LOGOUT_URL``
+     - ``LMS_BASE_URL`` + ``/login`` / ``/logout``.
+   * - ``ACCOUNT_SETTINGS_URL``
+     - ``LMS_BASE_URL`` + ``/account/settings``.
+   * - ``ACCOUNT_PROFILE_URL``
+     - ``PROFILE_MICROFRONTEND_URL``; otherwise ``LMS_BASE_URL``.
+
+Value formats:
+
+- ``HEADER_MAIN_MENU``: ``[{ txt, url, target }]``
+- ``HEADER_USER_MENU_EXTRA_LINKS``: ``[{ txt, url }]``, appended to the user
+  dropdown before "Sign Out".
 
 Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
 same as the footer.
