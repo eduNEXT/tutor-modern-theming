@@ -3,10 +3,11 @@
 ##
 ## Second renderer of the SAME footer, driven by the SAME MFE_CONFIG keys as the
 ## React MFE footer (frontend/edunext-footer/). One config source, two thin
-## renderers — see docs/decisions/0004. This overrides edx-platform's core
-## lms/templates/footer.html.
+## renderers — see docs/decisions/0004. Installed over every footer.html in the
+## image (core and themes); the original is kept as footer-original.html.
 
 <%page expression_filter="h"/>
+<%namespace name='static' file='static_content.html'/>
 <%!
 from django.conf import settings
 from django.utils.translation import gettext as _
@@ -25,7 +26,9 @@ SOCIAL_SVG = {
 <%
 mfe_config = getattr(settings, 'MFE_CONFIG', {}) or {}
 
-enabled = mfe_config.get('ENABLE_EDUNEXT_FOOTER', True)
+# Same default as the React footer: off unless explicitly enabled. When off,
+# delegate to the footer this one replaced (see the else branch at the end).
+enabled = bool(mfe_config.get('ENABLE_EDUNEXT_FOOTER', False))
 
 logo_src = mfe_config.get('FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
 logo_url = mfe_config.get('FOOTER_LOGO_URL') or mfe_config.get('LMS_ROOT_URL', '/')
@@ -161,4 +164,9 @@ bg_color = mfe_config.get('FOOTER_BACKGROUND_COLOR', '#1f2937')
     </div>
   </footer>
 </div>
+% else:
+## Delegate to the footer this template replaced at build time. The theme
+## lookup resolves it like footer.html would have been without this plugin:
+## the active theme's own footer (e.g. bragi), its parent's, or Open edX core.
+<%include file="${static.get_template_path('footer-original.html')}" />
 % endif

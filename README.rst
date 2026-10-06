@@ -168,19 +168,25 @@ legacy Django pages and the MFEs consistent from a single config source — two
 thin renderers, one config — without compiling React into Django (see
 ``docs/decisions/0004``).
 
-It is delivered by overriding edx-platform's core ``lms/templates/footer.html``
-at openedx image build time (same git-ref delivery as the MFE side). Legacy
-pages don't reliably expose Paragon tokens, so the legacy footer palette is
-self-contained with an optional ``FOOTER_BACKGROUND_COLOR`` override.
+It is delivered at openedx image build time (same git-ref delivery as the MFE
+side) by **delegation**: every ``lms/templates/footer.html`` in the image — core
+and every theme under ``/openedx/themes`` (e.g. ``bragi``) — is renamed to
+``footer-original.html`` in place, and the eduNEXT footer takes its name.
+
+``ENABLE_EDUNEXT_FOOTER`` is opt-in (same as the MFE footer). When it is off,
+the legacy footer includes ``footer-original.html``, which the theme lookup
+resolves exactly as ``footer.html`` would have been resolved without this
+plugin: the active theme's own footer, its parent's, or Open edX core.
+
+Legacy pages don't reliably expose Paragon tokens, so the legacy footer palette
+is self-contained with an optional ``FOOTER_BACKGROUND_COLOR`` override.
 
 .. warning::
 
-   This overrides the **core** footer template. A comprehensive theme that ships
-   its own ``lms/templates/footer.html`` (e.g. ``bragi``) takes precedence over
-   the core one; on such sites, drop the theme's footer override for this to take
-   effect. Content parity is config-driven; **structure** changes must be kept in
-   sync across both renderers (``frontend/edunext-footer/`` and
-   ``legacy/footer.html``).
+   Only themes baked into the image are covered: a theme mounted at runtime
+   (volume, ``tutor dev``) hides the build-time change. Content parity is
+   config-driven; **structure** changes must be kept in sync across both
+   renderers (``frontend/edunext-footer/`` and ``legacy/footer.html``).
 
 MFE Home Banner (catalog)
 -------------------------

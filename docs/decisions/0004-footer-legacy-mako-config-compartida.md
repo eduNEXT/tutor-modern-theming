@@ -48,9 +48,22 @@ renderers delgados** que leen las **mismas llaves `FOOTER_*` de `MFE_CONFIG`**:
   `FOOTER_OPENEDX_LOGO_*`, `FOOTER_EDUNEXT_LOGO_*`, `ENABLE_EDUNEXT_FOOTER`).
 
 Entrega del legacy: igual que el MFE, por `ADD` de este repo por git ref en el
-build de la imagen openedx (`openedx-dockerfile-post-git-checkout`), que
-sobreescribe el `lms/templates/footer.html` core de edx-platform. Mismo
-`MODERN_THEMING_GIT_REF`.
+build de la imagen openedx. Mismo `MODERN_THEMING_GIT_REF`.
+
+**Delegación, no reemplazo.** Los comprehensive themes (p. ej. `bragi`) traen su
+propio `lms/templates/footer.html`, que en el lookup de templates gana sobre el
+core; sobreescribir solo el core no basta. Por eso, en el patch
+`openedx-dockerfile` (después del `COPY ./themes/` y del `collectstatic`), cada
+`footer.html` de la imagen —core y de cada theme bajo `/openedx/themes`— se
+renombra a `footer-original.html` en su misma carpeta, y el nuestro toma su
+nombre. Con `ENABLE_EDUNEXT_FOOTER` apagado, nuestro template hace
+`<%include file="${static.get_template_path('footer-original.html')}" />`, que el
+lookup del theme resuelve igual que habría resuelto `footer.html` sin el plugin:
+el footer propio del theme activo, el de su padre (p. ej. `css-runtime` →
+`bragi`) o el de Open edX core. El template no conoce ningún theme por nombre.
+
+El flag es *opt-in* en ambos renderers: sin `ENABLE_EDUNEXT_FOOTER` truthy se
+muestra el footer original (legacy) o el default (MFE).
 
 Resultado: **una fuente de verdad** (las llaves `MFE_CONFIG`) y **un mantenedor**
 (el plugin, ambas plantillas en el mismo repo). El cliente configura una vez y
@@ -62,15 +75,18 @@ obtiene footers consistentes en legacy y MFE, sin copias por cliente.
   es 100% config-driven; la **estructura** (markup) hay que mantenerla en sync
   entre `frontend/edunext-footer/` (React) y `legacy/footer.html` (Mako) cuando
   cambie — pero en un solo repo, un solo PR, no por cliente.
-- Sobreescribe el `footer.html` **core**. Un comprehensive theme que traiga su
-  propio `footer.html` (p. ej. `bragi`) tiene precedencia; en esos sitios hay que
-  quitar el override del theme para que aplique. Documentado.
+- Aplica a todos los themes **dentro de la imagen**. Un theme montado en runtime
+  (volumen, `tutor dev`) tapa lo hecho en el build y no recibe el footer. Un
+  theme cuyo `main.html` no incluya `footer.html` (usa otro nombre) tampoco.
+- Depende de que los themes se copien antes del patch `openedx-dockerfile`
+  (Picasso los copia en `openedx-dockerfile-pre-assets`; Tutor v21 vuelve a
+  copiar `./themes/` antes de `collectstatic`). El paso es idempotente.
 - Legacy no expone tokens Paragon de forma fiable, así que la paleta del footer
   legacy es autocontenida con override opcional `FOOTER_BACKGROUND_COLOR`. Los
   colores del MFE siguen viniendo de varsify (`--pgn-*`); no hay paridad exacta
   de color entre ambos mundos por diseño de cada stack.
-- El flag `ENABLE_EDUNEXT_FOOTER` en legacy oculta el footer (no restaura el
-  original, porque el archivo core fue sobreescrito). En MFE sí cae al default.
+- Con `ENABLE_EDUNEXT_FOOTER` apagado, legacy restaura el footer original del
+  theme/core (vía `footer-original.html`) y MFE cae al footer default.
 
 ## Alternativas consideradas
 

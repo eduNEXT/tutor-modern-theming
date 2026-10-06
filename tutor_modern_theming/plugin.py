@@ -174,20 +174,28 @@ hooks.Filters.ENV_PATCHES.add_items(
 # as the React MFE footer, so legacy Django pages and the MFEs stay consistent
 # from a single config source — without compiling React into Django.
 #
-# Delivered the same way as the MFE side: the openedx image build fetches this
-# repo by git ref and overrides edx-platform's core lms/templates/footer.html.
+# Delegation, not replacement: comprehensive themes (e.g. bragi) ship their own
+# lms/templates/footer.html, which wins over core in the template lookup. So at
+# image build time, every footer.html in the image — core and every theme — is
+# renamed to footer-original.html in place, and ours takes its name. When
+# ENABLE_EDUNEXT_FOOTER is off, ours includes footer-original.html, which the
+# theme lookup resolves exactly like footer.html would have been resolved
+# without this plugin: the active theme's own footer, its parent's, or core's.
 #
-# Caveat: this overrides the CORE footer template. A comprehensive theme that
-# ships its own lms/templates/footer.html takes precedence over the core one;
-# on such sites, drop the theme's footer override for this to take effect.
+# Runs in "openedx-dockerfile", i.e. after the themes are copied into the image
+# (COPY ./themes/) and after collectstatic: templates need no asset rebuild.
 hooks.Filters.ENV_PATCHES.add_item(
     (
-        "openedx-dockerfile-post-git-checkout",
+        "openedx-dockerfile",
         "ADD --keep-git-dir=true "
         + MODERN_THEMING_REPO
         + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-legacy\n"
-        + "RUN cp /tmp/tutor-modern-theming-legacy/legacy/footer.html "
-        + "lms/templates/footer.html",
+        + "RUN for f in /openedx/edx-platform/lms/templates/footer.html "
+        + "$(find /openedx/themes -path '*/lms/templates/footer.html' 2>/dev/null); do \\\n"
+        + "      d=$(dirname \"$f\"); \\\n"
+        + "      [ -e \"$d/footer-original.html\" ] || mv \"$f\" \"$d/footer-original.html\"; \\\n"
+        + "      cp /tmp/tutor-modern-theming-legacy/legacy/footer.html \"$f\"; \\\n"
+        + "    done",
     )
 )
 
