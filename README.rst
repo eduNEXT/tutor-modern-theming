@@ -188,6 +188,55 @@ is self-contained with an optional ``FOOTER_BACKGROUND_COLOR`` override.
    config-driven; **structure** changes must be kept in sync across both
    renderers (``frontend/edunext-footer/`` and ``legacy/footer.html``).
 
+Legacy footer configuration and fallbacks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The legacy footer reads the same ``MFE_CONFIG`` keys as the MFE footer, resolved
+the same way as ``/api/mfe_config/v1``: tenant configuration first, Django
+settings second. It only renders when ``ENABLE_EDUNEXT_FOOTER`` is ``true``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_FOOTER``
+     - The footer the site would show without this plugin: the active theme's
+       footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
+   * - ``FOOTER_LOGO_SRC``
+     - ``MFE_CONFIG["LOGO_TRADEMARK_URL"]``; if that is also missing, no logo.
+   * - ``FOOTER_LOGO_URL``
+     - ``MFE_CONFIG["LMS_ROOT_URL"]``; if that is also missing, ``/``.
+   * - ``FOOTER_LOGO_ALT``
+     - "Platform logo".
+   * - ``FOOTER_LOGO_TARGET``
+     - ``_self``.
+   * - ``FOOTER_DESCRIPTION``
+     - No description.
+   * - ``FOOTER_NAV_COLUMNS``
+     - No navigation columns.
+   * - ``FOOTER_SOCIAL_LINKS``
+     - No social links.
+   * - ``FOOTER_EXTRA_LINKS``
+     - No extra links.
+   * - ``FOOTER_COPYRIGHT``
+     - "© All rights reserved" (translated).
+   * - ``FOOTER_OPENEDX_LOGO_SRC``
+     - No "Powered by Open edX" logo.
+   * - ``FOOTER_EDUNEXT_LOGO_SRC``
+     - No eduNEXT logo.
+   * - ``FOOTER_BACKGROUND_COLOR``
+     - ``#1f2937``. Legacy pages do not reliably expose Paragon tokens, so this
+       is the only color setting for the legacy footer.
+
+.. note::
+
+   The legacy footer does not use the MFE footer's default content: with only
+   ``ENABLE_EDUNEXT_FOOTER`` set, legacy shows the logo and the copyright line,
+   while the MFE footer shows its default description, columns and social
+   links. Set the ``FOOTER_*`` keys explicitly to get the same footer on both.
+
 MFE Home Banner (catalog)
 -------------------------
 
