@@ -241,11 +241,29 @@ The eduNEXT header only renders when ``ENABLE_EDUNEXT_HEADER`` is ``true``.
    * - ``ACCOUNT_PROFILE_URL``
      - ``PROFILE_MICROFRONTEND_URL``; otherwise ``LMS_BASE_URL``.
 
-Value formats:
+Example of the header keys, as they go in ``MFE_CONFIG`` (Tutor settings or the
+tenant configuration):
 
-- ``HEADER_MAIN_MENU``: ``[{ txt, url, target }]``
-- ``HEADER_USER_MENU_EXTRA_LINKS``: ``[{ txt, url }]``, appended to the user
-  dropdown before "Sign Out".
+.. code-block:: json
+
+   {
+     "ENABLE_EDUNEXT_HEADER": true,
+     "HEADER_MAIN_MENU": [
+       { "txt": "Courses", "url": "https://example.com/courses" },
+       { "txt": "Programs", "url": "https://example.com/programs" },
+       { "txt": "Blog", "url": "https://blog.example.com", "target": "_blank" }
+     ],
+     "HEADER_USER_MENU_EXTRA_LINKS": [
+       { "txt": "My certificates", "url": "https://example.com/certificates" },
+       { "txt": "Help center", "url": "https://help.example.com" }
+     ]
+   }
+
+- ``HEADER_MAIN_MENU``: ``txt`` and ``url`` are required; ``target`` is optional
+  and defaults to ``_self``.
+- ``HEADER_USER_MENU_EXTRA_LINKS``: ``txt`` and ``url`` are required. The links
+  are added to the user dropdown after Dashboard, Profile and Account, and
+  before "Sign Out"; they open in the same tab.
 
 Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
 same as the footer.
