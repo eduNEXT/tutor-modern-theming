@@ -166,6 +166,41 @@ hooks.Filters.ENV_PATCHES.add_items(
 
 
 ########################################
+# LEGACY FOOTER (Django/Mako)
+########################################
+#
+# Same config, second renderer (see docs/decisions/0004). The plugin ships a
+# Mako footer (legacy/footer.html) that reads the SAME FOOTER_* MFE_CONFIG keys
+# as the React MFE footer, so legacy Django pages and the MFEs stay consistent
+# from a single config source — without compiling React into Django.
+#
+# Delegation, not replacement: comprehensive themes (e.g. bragi) ship their own
+# lms/templates/footer.html, which wins over core in the template lookup. So at
+# image build time, every footer.html in the image — core and every theme — is
+# renamed to footer-original.html in place, and ours takes its name. When
+# ENABLE_EDUNEXT_FOOTER is off, ours includes footer-original.html, which the
+# theme lookup resolves exactly like footer.html would have been resolved
+# without this plugin: the active theme's own footer, its parent's, or core's.
+#
+# Runs in "openedx-dockerfile", i.e. after the themes are copied into the image
+# (COPY ./themes/) and after collectstatic: templates need no asset rebuild.
+hooks.Filters.ENV_PATCHES.add_item(
+    (
+        "openedx-dockerfile",
+        "ADD --keep-git-dir=true "
+        + MODERN_THEMING_REPO
+        + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-legacy\n"
+        + "RUN for f in /openedx/edx-platform/lms/templates/footer.html "
+        + "$(find /openedx/themes -path '*/lms/templates/footer.html' 2>/dev/null); do \\\n"
+        + "      d=$(dirname \"$f\"); \\\n"
+        + "      [ -e \"$d/footer-original.html\" ] || mv \"$f\" \"$d/footer-original.html\"; \\\n"
+        + "      cp /tmp/tutor-modern-theming-legacy/legacy/footer.html \"$f\"; \\\n"
+        + "    done",
+    )
+)
+
+
+########################################
 # MFE HOME BANNER (catalog)
 ########################################
 #

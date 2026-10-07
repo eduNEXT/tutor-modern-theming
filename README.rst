@@ -159,6 +159,67 @@ the tenant configuration):
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
 
+Legacy (Django/Mako) footer
+---------------------------
+
+The plugin also ships a legacy footer (``legacy/footer.html``, Mako) that reads
+the **same** ``FOOTER_*`` ``MFE_CONFIG`` keys as the React MFE footer. This keeps
+legacy Django pages and the MFEs consistent from a single config source — two
+thin renderers, one config — without compiling React into Django (see
+``docs/decisions/0004``).
+
+It is delivered at openedx image build time (same git-ref delivery as the MFE
+side) by **delegation**: every ``lms/templates/footer.html`` in the image — core
+and every theme under ``/openedx/themes`` (e.g. ``bragi``) — is renamed to
+``footer-original.html`` in place, and the eduNEXT footer takes its name.
+
+``ENABLE_EDUNEXT_FOOTER`` is opt-in (same as the MFE footer). When it is off,
+the legacy footer includes ``footer-original.html``, which the theme lookup
+resolves exactly as ``footer.html`` would have been resolved without this
+plugin: the active theme's own footer, its parent's, or Open edX core.
+
+The legacy footer looks the same as the MFE footer: same markup structure, same
+defaults and the same Paragon color tokens (``--pgn-color-*``) as
+``EdunextFooter.scss``. It loads the tenant's tokens itself from
+``MFE_CONFIG["PARAGON_THEME_URLS"]`` (the theme variant, e.g. the varsify CSS),
+the same file the MFEs load, so it does not depend on the legacy theme. Only the
+variant is loaded; the Paragon ``core`` stylesheet would restyle the legacy page.
+Typography uses Paragon's core values, which is what the MFEs end up rendering.
+
+.. warning::
+
+   Only themes baked into the image are covered: a theme mounted at runtime
+   (volume, ``tutor dev``) hides the build-time change. Content parity is
+   config-driven; **structure** changes must be kept in sync across both
+   renderers (``frontend/edunext-footer/`` and ``legacy/footer.html``).
+
+Legacy footer configuration and fallbacks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The legacy footer reads the same ``MFE_CONFIG`` keys as the MFE footer, resolved
+the same way as ``/api/mfe_config/v1``: tenant configuration first, Django
+settings second. It only renders when ``ENABLE_EDUNEXT_FOOTER`` is ``true``.
+
+Every other ``FOOTER_*`` key has the same fallback as in the MFE footer (see
+`Configuration`_). The differences are:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Key
+     - If not set
+   * - ``ENABLE_EDUNEXT_FOOTER``
+     - The footer the site would show without this plugin: the active theme's
+       footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
+   * - ``LMS_BASE_URL`` (used by the default logo URL and navigation links)
+     - Django's ``LMS_ROOT_URL``.
+   * - ``PARAGON_THEME_URLS``
+     - No theme tokens are loaded; colors fall back to Paragon's defaults.
+   * - ``FOOTER_BACKGROUND_COLOR`` (legacy only)
+     - The same background as the MFE footer, ``--pgn-color-primary-700``. Set
+       it only to force a different background on legacy pages.
+
 MFE Home Banner (catalog)
 -------------------------
 

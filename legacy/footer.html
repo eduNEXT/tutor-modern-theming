@@ -1,0 +1,318 @@
+## mako
+## eduNEXT modern-theming — legacy (Django/Mako) footer.
+##
+## Second renderer of the SAME footer as the React MFE footer
+## (frontend/edunext-footer/): same MFE_CONFIG keys, same defaults, same markup
+## structure and the same Paragon design tokens (--pgn-*) as
+## EdunextFooter.scss — see docs/decisions/0004. Installed over every
+## footer.html in the image (core and themes); the original is kept as
+## footer-original.html.
+
+<%page expression_filter="h"/>
+<%namespace name='static' file='static_content.html'/>
+<%!
+import datetime
+
+from django.conf import settings
+from django.utils.translation import gettext as _
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
+
+# Same icons the MFE footer renders (@openedx/paragon/icons).
+SOCIAL_SVG = {
+    'facebook': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg>',
+    'twitter': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>',
+    'linkedin': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/></svg>',
+    'instagram': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/></svg>',
+    'youtube': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/></svg>',
+    'github': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>',
+}
+LAUNCH_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19 19H5V5h7V3H3v18h18v-9h-2v7ZM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7Z"/></svg>'
+
+
+def paragon_variant_url(mfe_config):
+    """
+    URL of the tenant's Paragon theme variant (varsify), the same CSS the MFEs
+    load from MFE_CONFIG["PARAGON_THEME_URLS"]. It only defines the --pgn-*
+    custom properties on :root, so it is safe on legacy pages. The "core" URL is
+    the full Paragon stylesheet and is intentionally not loaded here.
+    """
+    urls = mfe_config.get('PARAGON_THEME_URLS') or {}
+    variants = urls.get('variants') or {}
+    name = (urls.get('defaults') or {}).get('light') or 'light'
+    variant = variants.get(name) or next(iter(variants.values()), None) or {}
+    return variant.get('url', '') if isinstance(variant, dict) else ''
+%>
+
+<%
+# Resolve MFE_CONFIG exactly like the MFE config API (/api/mfe_config/v1) that
+# feeds the React footer: tenant/site configuration first, Django settings as
+# the fallback. Keeps both renderers on the same per-tenant values.
+mfe_config = configuration_helpers.get_value(
+    'MFE_CONFIG', getattr(settings, 'MFE_CONFIG', {}),
+) or {}
+
+# Same default as the React footer: off unless explicitly enabled. When off,
+# delegate to the footer this one replaced (see the else branch at the end).
+enabled = bool(mfe_config.get('ENABLE_EDUNEXT_FOOTER', False))
+
+lms_base_url = mfe_config.get('LMS_BASE_URL') or getattr(settings, 'LMS_ROOT_URL', '')
+
+# Every value and fallback below mirrors frontend/edunext-footer/EdunextFooter.jsx.
+logo_src = mfe_config.get('FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
+logo_url = mfe_config.get('FOOTER_LOGO_URL') or lms_base_url
+logo_alt = mfe_config.get('FOOTER_LOGO_ALT') or _('Platform logo')
+logo_target = mfe_config.get('FOOTER_LOGO_TARGET') or '_self'
+
+description = mfe_config.get('FOOTER_DESCRIPTION') or _(
+    'Empowering learners everywhere with world-class online education.'
+)
+
+nav_columns = mfe_config.get('FOOTER_NAV_COLUMNS') or [
+    {
+        'title': _('About'),
+        'links': [
+            {'txt': _('About Us'), 'url': lms_base_url + '/about'},
+            {'txt': _('Blog'), 'url': lms_base_url + '/blog'},
+            {'txt': _('Careers'), 'url': lms_base_url + '/careers'},
+            {'txt': _('News'), 'url': lms_base_url + '/news'},
+        ],
+    },
+    {
+        'title': _('Legal'),
+        'links': [
+            {'txt': _('Terms of Service'), 'url': lms_base_url + '/tos'},
+            {'txt': _('Privacy Policy'), 'url': lms_base_url + '/privacy'},
+            {'txt': _('Accessibility'), 'url': lms_base_url + '/accessibility'},
+        ],
+    },
+    {
+        'title': _('Connect'),
+        'links': [
+            {'txt': _('Contact Us'), 'url': lms_base_url + '/contact'},
+            {'txt': _('Help & Support'), 'url': lms_base_url + '/support'},
+        ],
+    },
+]
+
+social_links = mfe_config.get('FOOTER_SOCIAL_LINKS') or [
+    {'key': 'facebook', 'url': 'https://www.facebook.com/EdXOnline', 'label': 'Facebook'},
+    {'key': 'twitter', 'url': 'https://twitter.com/edXOnline', 'label': 'X (Twitter)'},
+    {'key': 'linkedin', 'url': 'https://www.linkedin.com/school/edx', 'label': 'LinkedIn'},
+    {'key': 'instagram', 'url': 'https://www.instagram.com/edxonline', 'label': 'Instagram'},
+    {'key': 'youtube', 'url': 'https://www.youtube.com/edx', 'label': 'YouTube'},
+    {'key': 'github', 'url': 'https://github.com/openedx', 'label': 'GitHub'},
+]
+
+extra_links = mfe_config.get('FOOTER_EXTRA_LINKS') or []
+
+copyright_text = mfe_config.get('FOOTER_COPYRIGHT') or _(
+    '© {year} eduNEXT. All rights reserved.'
+).format(year=datetime.date.today().year)
+
+openedx_logo_src = mfe_config.get('FOOTER_OPENEDX_LOGO_SRC') or 'https://logos.openedx.org/edx-openedx-logo-tag.png'
+openedx_logo_url = mfe_config.get('FOOTER_OPENEDX_LOGO_URL') or 'https://open.edx.org/'
+openedx_logo_alt = mfe_config.get('FOOTER_OPENEDX_LOGO_ALT') or _('Powered by Open edX')
+
+edunext_logo_src = mfe_config.get('FOOTER_EDUNEXT_LOGO_SRC') or 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png'
+edunext_logo_url = mfe_config.get('FOOTER_EDUNEXT_LOGO_URL') or 'https://www.edunext.co'
+edunext_logo_alt = mfe_config.get('FOOTER_EDUNEXT_LOGO_ALT') or 'eduNEXT'
+
+# Optional legacy-only override; by default the background is the same Paragon
+# token as the MFE footer (--pgn-color-primary-700).
+bg_override = mfe_config.get('FOOTER_BACKGROUND_COLOR', '')
+
+theme_variant_url = paragon_variant_url(mfe_config)
+%>
+
+<%def name="footer_link(link, extra_class='')">
+<%
+  target = link.get('target') or '_self'
+%>\
+<a class="ef-link ef-hyperlink ${extra_class}" href="${link.get('url', '')}" target="${target}"\
+% if target == '_blank':
+ rel="noopener noreferrer"\
+% endif
+>${link.get('txt', '')}\
+% if target == '_blank':
+<span class="ef-external-icon" title="${_('Opens in a new tab')}">${LAUNCH_SVG | n}<span class="sr-only">${_('in a new tab')}</span></span>\
+% endif
+</a>
+</%def>
+
+% if enabled:
+<div class="edunext-footer-wrapper">
+  % if theme_variant_url:
+  ## Tenant design tokens (varsify): the same file the MFEs load, so legacy and
+  ## MFE footers resolve the same --pgn-* values without depending on the
+  ## active comprehensive theme.
+  <link rel="stylesheet" type="text/css" href="${theme_variant_url}" />
+  % endif
+  <style>
+    /* Mirrors frontend/edunext-footer/EdunextFooter.scss. Colors use the same
+       --pgn-color-* tokens; their fallbacks are the Paragon defaults, used only
+       when no theme variant defines them.
+       Everything is scoped to #footer-edunext and resets the elements the
+       legacy theme styles globally (h3, p, ul, nav, a, hr, img). */
+    #footer-edunext, #footer-edunext * { box-sizing: border-box; }
+    #footer-edunext {
+      background-color: ${bg_override or 'var(--pgn-color-primary-700, #082644)'};
+      color: var(--pgn-color-white, #FFFFFF);
+      /* Typography uses Paragon's core values, not the theme variant tokens:
+         the MFEs load Paragon's core stylesheet after the variant, so a
+         variant's typography tokens never reach the MFE footer. */
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+      font-size: 1.125rem;
+      line-height: 1.5556;
+      text-align: left;
+      padding: 0;
+      margin: 0;
+      border: 0;
+    }
+    #footer-edunext h3, #footer-edunext p, #footer-edunext ul, #footer-edunext li,
+    #footer-edunext nav { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+    #footer-edunext h3 { font-family: inherit; line-height: 1.25; }
+    #footer-edunext p { margin-bottom: 1rem; }
+    #footer-edunext img { border: 0; vertical-align: middle; }
+    #footer-edunext a { box-shadow: none; border: 0; background: none; }
+    #footer-edunext .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    #footer-edunext .ef-content { max-width: 1200px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem 1.5rem; }
+    #footer-edunext .ef-top { display: flex; flex-wrap: wrap; gap: 3rem; align-items: flex-start; }
+    #footer-edunext .ef-brand { flex: 1 1 280px; min-width: 220px; max-width: 320px; }
+    #footer-edunext .ef-logo-link { display: inline-block; transition: opacity 0.2s ease; }
+    #footer-edunext .ef-logo-link:hover, #footer-edunext .ef-logo-link:focus { opacity: 0.85; }
+    #footer-edunext .ef-logo { max-height: 40px; width: auto; filter: brightness(0) invert(1); }
+    #footer-edunext .ef-tagline { margin-top: 1rem; font-size: 0.875rem; line-height: 1.6; color: var(--pgn-color-light-300, #F0EEED); max-width: 280px; }
+
+    #footer-edunext .ef-powered-by { display: flex; align-items: center; gap: 1.5rem; }
+    #footer-edunext .ef-powered-logo { display: inline-block; transition: opacity 0.2s ease; }
+    #footer-edunext .ef-powered-logo:hover, #footer-edunext .ef-powered-logo:focus { opacity: 0.8; }
+    #footer-edunext .ef-powered-logo img { max-height: 30px; width: auto; }
+
+    #footer-edunext .ef-nav-columns { display: flex; flex: 2 1 auto; flex-wrap: wrap; gap: 2.5rem; }
+    #footer-edunext .ef-nav-column { flex: 1 1 140px; min-width: 120px; }
+    #footer-edunext .ef-nav-title {
+      font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--pgn-color-white, #FFFFFF); margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--pgn-color-brand-base, #9D0054); display: inline-block;
+    }
+    #footer-edunext .ef-nav-list { list-style: none; padding: 0; margin: 0; }
+    #footer-edunext .ef-nav-list li { list-style: none; margin-bottom: 0.5rem; }
+
+    #footer-edunext a.ef-link { color: var(--pgn-color-light-300, #F0EEED) !important; font-size: 0.875rem; text-decoration: none !important; transition: color 0.2s ease; }
+    #footer-edunext a.ef-link:hover, #footer-edunext a.ef-link:focus { color: var(--pgn-color-white, #FFFFFF) !important; }
+    #footer-edunext .ef-hyperlink { display: inline-flex; align-items: center; text-align: start; }
+    #footer-edunext .ef-external-icon { display: inline-flex; margin-inline-start: 0.5rem; }
+    #footer-edunext .ef-external-icon svg { width: 1em; height: 1em; }
+
+    #footer-edunext .ef-divider { border: none; border-top: 1px solid rgba(255, 255, 255, 0.15); height: 0; margin: 2rem 0 1.25rem; background: none; }
+    #footer-edunext .ef-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+
+    #footer-edunext .ef-social { display: flex; align-items: center; gap: 0.25rem; }
+    /* light-500 and 1.5rem icons: the MFE renders Paragon's IconButton
+       defaults, because the .pgn__icon-btn rule in EdunextFooter.scss does
+       not match the btn-icon classes IconButton renders. */
+    #footer-edunext a.ef-social-btn {
+      color: var(--pgn-color-light-500, #E1DDDB) !important; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2.25rem; height: 2.25rem; padding: 0;
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+    #footer-edunext a.ef-social-btn:hover, #footer-edunext a.ef-social-btn:focus {
+      color: var(--pgn-color-white, #FFFFFF) !important; background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    /* 1.5rem: Paragon's default icon size, which is what the MFE renders. */
+    #footer-edunext a.ef-social-btn svg { display: block; width: 1.5rem; height: 1.5rem; }
+
+    #footer-edunext .ef-copyright { font-size: 0.8125rem; color: var(--pgn-color-light-500, #E1DDDB); margin: 0; }
+    #footer-edunext .ef-extra { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    #footer-edunext .ef-extra-nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+
+    @media (max-width: 768px) {
+      #footer-edunext .ef-top { flex-direction: column; gap: 2rem; }
+      #footer-edunext .ef-brand { max-width: 100%; }
+      #footer-edunext .ef-nav-columns { gap: 1.5rem; }
+      #footer-edunext .ef-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+
+  <footer id="footer-edunext" class="edunext-footer" role="contentinfo">
+    <div class="ef-content">
+      ## Top section: logo + navigation
+      <div class="ef-top">
+        <div class="ef-brand">
+          <a class="ef-logo-link" href="${logo_url}" target="${logo_target}" aria-label="${logo_alt}">
+            <img class="ef-logo" src="${logo_src}" alt="${logo_alt}"/>
+          </a>
+          % if description:
+          <p class="ef-tagline">${description}</p>
+          % endif
+
+          <div class="ef-nav-column">
+            <h3 class="ef-nav-title">${_('Follow Us')}</h3>
+            <nav aria-label="${_('Follow Us')}">
+              <div class="ef-social">
+                % for link in social_links:
+                  <% svg = SOCIAL_SVG.get(link.get('key', '')) %>
+                  % if svg:
+                  <a class="ef-social-btn" href="${link.get('url', '')}" target="_blank" rel="noopener noreferrer" aria-label="${link.get('label', link.get('key'))}">${svg | n}</a>
+                  % endif
+                % endfor
+              </div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="ef-nav-columns">
+          % for column in nav_columns:
+          <div class="ef-nav-column">
+            <h3 class="ef-nav-title">${column.get('title', '')}</h3>
+            <nav aria-label="${column.get('title', '')}">
+              <ul class="ef-nav-list">
+                % for link in column.get('links', []):
+                <li>${footer_link(link)}</li>
+                % endfor
+              </ul>
+            </nav>
+          </div>
+          % endfor
+        </div>
+      </div>
+
+      <hr class="ef-divider"/>
+
+      ## Bottom section: powered-by logos + copyright
+      <div class="ef-bottom">
+        % if openedx_logo_src or edunext_logo_src:
+        <div class="ef-powered-by">
+          <span class="ef-copyright">${_('Powered by')}</span>
+          % if openedx_logo_src:
+          <a class="ef-powered-logo" href="${openedx_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${openedx_logo_src}" alt="${openedx_logo_alt}"/></a>
+          % endif
+          % if edunext_logo_src:
+          <a class="ef-powered-logo" href="${edunext_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${edunext_logo_src}" alt="${edunext_logo_alt}"/></a>
+          % endif
+        </div>
+        % endif
+        <p class="ef-copyright">${copyright_text}</p>
+      </div>
+
+      ## Extra links row
+      % if extra_links:
+      <div class="ef-extra">
+        <nav class="ef-extra-nav">
+          % for link in extra_links:
+          ${footer_link(link)}
+          % endfor
+        </nav>
+      </div>
+      % endif
+    </div>
+  </footer>
+</div>
+% else:
+## Delegate to the footer this template replaced at build time. The theme
+## lookup resolves it like footer.html would have been without this plugin:
+## the active theme's own footer (e.g. bragi), its parent's, or Open edX core.
+<%include file="${static.get_template_path('footer-original.html')}" />
+% endif
