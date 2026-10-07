@@ -67,9 +67,11 @@ misma carpeta, y la plantilla eduNEXT toma su lugar.
 
 - Hay paridad de contenido, no de código: los cambios de estructura (HTML) deben
   replicarse en ambas plantillas, dentro del mismo repositorio y del mismo PR.
-- Las páginas legacy no exponen los tokens de Paragon de forma confiable; la
-  paleta del footer legacy es propia, con el color de fondo configurable
-  (`FOOTER_BACKGROUND_COLOR`).
+- La plantilla legacy replica la estructura, los valores por defecto y los
+  tokens de color de Paragon del footer de los MFE. Para no depender del theme
+  legacy, carga ella misma la variante de tema del tenant desde
+  `MFE_CONFIG["PARAGON_THEME_URLS"]`, el mismo archivo que cargan los MFE. No
+  carga la hoja `core` de Paragon, que modificaría el resto de la página.
 - Solo cubre themes incluidos en la imagen. Un theme montado en tiempo de
   ejecución (volumen, `tutor dev`) reemplaza los archivos modificados en el
   build.
