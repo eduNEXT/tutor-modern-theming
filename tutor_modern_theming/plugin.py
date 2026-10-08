@@ -11,8 +11,10 @@ plugin APIs are used here.
 """
 from __future__ import annotations
 
+import json
 import os
 from glob import glob
+from importlib import metadata
 
 import importlib_resources
 from tutor import hooks
@@ -76,12 +78,24 @@ for path in glob(
 # No separate widget repo, no npm publish. The component is fetched from this
 # same repo by git ref at build time.
 
-# Git ref of THIS repo used to fetch the footer component during the MFE build.
-# Defaults to "master"; operators SHOULD pin a tag or commit SHA in production
-# for reproducible builds.
+# Git ref of THIS repo that the image builds fetch the frontend and legacy
+# files from (see the ADD patches below). It must match the installed plugin
+# code, so by default it is the exact commit pip installed from git, read from
+# the package's direct_url.json (PEP 610). Installs without a commit (release
+# or editable installs) fall back to "master". Operators can still override it
+# with MODERN_THEMING_GIT_REF.
+def _installed_git_ref() -> str:
+    try:
+        raw = metadata.distribution("tutor-modern-theming").read_text("direct_url.json")
+        commit = (json.loads(raw or "{}").get("vcs_info") or {}).get("commit_id")
+    except (metadata.PackageNotFoundError, ValueError):
+        commit = None
+    return commit or "master"
+
+
 hooks.Filters.CONFIG_DEFAULTS.add_items(
     [
-        ("MODERN_THEMING_GIT_REF", "master"),
+        ("MODERN_THEMING_GIT_REF", _installed_git_ref()),
     ]
 )
 
