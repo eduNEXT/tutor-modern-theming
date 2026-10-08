@@ -184,7 +184,37 @@ defaults and the same Paragon color tokens (``--pgn-color-*``) as
 ``MFE_CONFIG["PARAGON_THEME_URLS"]`` (the theme variant, e.g. the varsify CSS),
 the same file the MFEs load, so it does not depend on the legacy theme. Only the
 variant is loaded; the Paragon ``core`` stylesheet would restyle the legacy page.
-Typography uses Paragon's core values, which is what the MFEs end up rendering.
+
+Fonts
+^^^^^
+
+Paragon splits its tokens in two layers: **core** (typography, spacing, sizes)
+and **theme variants** (colors). The MFEs load the variant first and the Paragon
+``core`` stylesheet after it, so a variant can change colors but not typography.
+A varsify file defines both kinds of tokens, but it is usually registered only
+as a variant, so its font never reaches the MFEs: they render Paragon's default
+font, and the legacy footer does the same so that both footers match.
+
+To use the tenant's font, register the same file also as the core brand
+override in the tenant's ``MFE_CONFIG``. The MFEs load it right after Paragon
+``core``, and the legacy footer detects it and uses the same font:
+
+.. code-block:: json
+
+   {
+     "PARAGON_THEME_URLS": {
+       "core": {
+         "urls": {
+           "default": "<Paragon core stylesheet URL>",
+           "brandOverride": "<varsify CSS URL>"
+         }
+       },
+       "defaults": { "light": "light" },
+       "variants": { "light": { "url": "<varsify CSS URL>" } }
+     }
+   }
+
+This changes the font of every MFE of the tenant, not only the footer.
 
 .. warning::
 
