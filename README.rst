@@ -57,17 +57,26 @@ Styled MFEs: ``account``, ``catalog``, ``communications``, ``discussions``,
 (e.g. ``release/ulmo.3``), not ``master``, which uses frontend-base.
 (``authoring``/Studio uses a different slot and is a follow-up.)
 
-Pin the source ref for reproducible builds
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Source ref of the frontend files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``MODERN_THEMING_GIT_REF`` selects which ref of this repo the MFE build pulls
-the component from. It defaults to ``master``; pin a tag or commit SHA in
-production:
+The image builds fetch the frontend and legacy files of this repo by git ref
+(``MODERN_THEMING_GIT_REF``). By default it is the exact commit that pip
+installed, so installing the plugin is the only thing to pin:
+
+.. code-block:: bash
+
+    pip install "git+https://github.com/eduNEXT/tutor-modern-theming.git@<branch-tag-or-sha>"
+    tutor config save
+    tutor images build mfe openedx
+
+The build then uses the same commit as the installed plugin code, even if the
+branch moves afterwards. Installs that do not record a commit (release or
+editable installs) fall back to ``master``. To force another ref:
 
 .. code-block:: bash
 
     tutor config save --set MODERN_THEMING_GIT_REF=<tag-or-sha>
-    tutor images build mfe
 
 Configuration
 -------------
