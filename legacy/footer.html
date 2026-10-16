@@ -29,6 +29,16 @@ SOCIAL_SVG = {
 LAUNCH_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19 19H5V5h7V3H3v18h18v-9h-2v7ZM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7Z"/></svg>'
 
 
+def _theme_url(entry, key='default'):
+    """URL of a PARAGON_THEME_URLS entry, in either {"url"} or {"urls": {...}} form."""
+    if not isinstance(entry, dict):
+        return ''
+    urls = entry.get('urls')
+    if isinstance(urls, dict):
+        return urls.get(key) or ''
+    return entry.get('url', '') if key == 'default' else ''
+
+
 def paragon_variant_url(mfe_config):
     """
     URL of the tenant's Paragon theme variant (varsify), the same CSS the MFEs
@@ -39,8 +49,18 @@ def paragon_variant_url(mfe_config):
     urls = mfe_config.get('PARAGON_THEME_URLS') or {}
     variants = urls.get('variants') or {}
     name = (urls.get('defaults') or {}).get('light') or 'light'
-    variant = variants.get(name) or next(iter(variants.values()), None) or {}
-    return variant.get('url', '') if isinstance(variant, dict) else ''
+    return _theme_url(variants.get(name) or next(iter(variants.values()), None))
+
+
+def uses_theme_typography(mfe_config):
+    """
+    Whether the MFEs render the theme's typography tokens. The MFEs load the
+    Paragon core stylesheet after the theme variant, so core's typography wins,
+    unless PARAGON_THEME_URLS.core.urls.brandOverride is set: that file is
+    loaded right after core and its tokens win.
+    """
+    core = (mfe_config.get('PARAGON_THEME_URLS') or {}).get('core')
+    return bool(_theme_url(core, 'brandOverride'))
 %>
 
 <%
@@ -122,6 +142,22 @@ edunext_logo_alt = mfe_config.get('FOOTER_EDUNEXT_LOGO_ALT') or 'eduNEXT'
 bg_override = mfe_config.get('FOOTER_BACKGROUND_COLOR', '')
 
 theme_variant_url = paragon_variant_url(mfe_config)
+
+# Typography: Paragon core values, or the theme tokens when the MFEs use them
+# (see uses_theme_typography), so both footers always render the same font.
+PARAGON_FONT_STACK = ("-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', "
+                      "Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', "
+                      "'Segoe UI Symbol', 'Noto Color Emoji'")
+if uses_theme_typography(mfe_config):
+    font_family = 'var(--pgn-typography-font-family-base, %s)' % PARAGON_FONT_STACK
+    font_size = 'var(--pgn-typography-font-size-base, 1.125rem)'
+    line_height = 'var(--pgn-typography-line-height-base, 1.5556)'
+    headings_line_height = 'var(--pgn-typography-headings-line-height, 1.25)'
+else:
+    font_family = PARAGON_FONT_STACK
+    font_size = '1.125rem'
+    line_height = '1.5556'
+    headings_line_height = '1.25'
 %>
 
 <%def name="footer_link(link, extra_class='')">
@@ -157,12 +193,9 @@ theme_variant_url = paragon_variant_url(mfe_config)
     #footer-edunext {
       background-color: ${bg_override or 'var(--pgn-color-primary-700, #082644)'};
       color: var(--pgn-color-white, #FFFFFF);
-      /* Typography uses Paragon's core values, not the theme variant tokens:
-         the MFEs load Paragon's core stylesheet after the variant, so a
-         variant's typography tokens never reach the MFE footer. */
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-      font-size: 1.125rem;
-      line-height: 1.5556;
+      font-family: ${font_family | n};
+      font-size: ${font_size};
+      line-height: ${line_height};
       text-align: left;
       padding: 0;
       margin: 0;
@@ -170,7 +203,10 @@ theme_variant_url = paragon_variant_url(mfe_config)
     }
     #footer-edunext h3, #footer-edunext p, #footer-edunext ul, #footer-edunext li,
     #footer-edunext nav { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
-    #footer-edunext h3 { font-family: inherit; line-height: 1.25; }
+    /* Legacy themes set font-family on elements (h3, p, a...), which would
+       beat inheritance; every element in the footer uses the footer's font. */
+    #footer-edunext * { font-family: inherit; }
+    #footer-edunext h3 { line-height: ${headings_line_height}; }
     #footer-edunext p { margin-bottom: 1rem; }
     #footer-edunext img { border: 0; vertical-align: middle; }
     #footer-edunext a { box-shadow: none; border: 0; background: none; }

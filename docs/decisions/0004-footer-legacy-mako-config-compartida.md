@@ -72,6 +72,11 @@ misma carpeta, y la plantilla eduNEXT toma su lugar.
   legacy, carga ella misma la variante de tema del tenant desde
   `MFE_CONFIG["PARAGON_THEME_URLS"]`, el mismo archivo que cargan los MFE. No
   carga la hoja `core` de Paragon, que modificaría el resto de la página.
+- La tipografía sigue la misma regla que los MFE: los tokens de tipografía de la
+  variante solo llegan a los MFE si el tenant registra el archivo también como
+  `PARAGON_THEME_URLS.core.urls.brandOverride`. La plantilla legacy usa la
+  tipografía del tenant en ese caso y la de Paragon en el resto, para que ambos
+  footers muestren la misma fuente.
 - Solo cubre themes incluidos en la imagen. Un theme montado en tiempo de
   ejecución (volumen, `tutor dev`) reemplaza los archivos modificados en el
   build.
