@@ -16,7 +16,7 @@ import '@src/home/components/home-banner/index.scss';
 
 import messages from './messages';
 
-const EdunextHomeBanner = () => {
+const CobaltHomeBanner = () => {
   const intl = useIntl();
   const navigate = useNavigate();
   const config = getConfig();
@@ -24,7 +24,7 @@ const EdunextHomeBanner = () => {
   const [isOpen, open, close] = useToggle(false);
 
   // Runtime kill-switch: fall back to the default catalog banner when disabled.
-  if (!config.ENABLE_EDUNEXT_HOME_BANNER) {
+  if (!config.ENABLE_COBALT_HOME_BANNER) {
     return <DefaultHomeBanner />;
   }
 
@@ -44,20 +44,20 @@ const EdunextHomeBanner = () => {
 
   // Everything customizable comes from MFE_CONFIG (getConfig()), with i18n
   // fallbacks — no varsify, no JSX override needed per tenant.
-  const title = config.HOME_BANNER_TITLE
+  const title = config.COBALT_HOME_BANNER_TITLE
     || intl.formatMessage(messages.title, { siteName: config.SITE_NAME });
-  const subtitle = config.HOME_BANNER_SUBTITLE
+  const subtitle = config.COBALT_HOME_BANNER_SUBTITLE
     || intl.formatMessage(messages.subtitle);
 
   // Background image/color: varsify cannot emit these catalog-specific CSS
   // vars, so they come from MFE_CONFIG and are injected as inline CSS custom
   // properties that the catalog banner SCSS already consumes.
   const bannerStyle = {};
-  if (config.HOME_BANNER_BACKGROUND_IMAGE) {
-    bannerStyle['--catalog-home-page-banner-background-image'] = `url(${config.HOME_BANNER_BACKGROUND_IMAGE})`;
+  if (config.COBALT_HOME_BANNER_BACKGROUND_IMAGE) {
+    bannerStyle['--catalog-home-page-banner-background-image'] = `url(${config.COBALT_HOME_BANNER_BACKGROUND_IMAGE})`;
   }
-  if (config.HOME_BANNER_BACKGROUND_COLOR) {
-    bannerStyle['--catalog-home-page-banner-background-color'] = config.HOME_BANNER_BACKGROUND_COLOR;
+  if (config.COBALT_HOME_BANNER_BACKGROUND_COLOR) {
+    bannerStyle['--catalog-home-page-banner-background-color'] = config.COBALT_HOME_BANNER_BACKGROUND_COLOR;
   }
 
   return (
@@ -83,4 +83,4 @@ const EdunextHomeBanner = () => {
   );
 };
 
-export default EdunextHomeBanner;
+export default CobaltHomeBanner;

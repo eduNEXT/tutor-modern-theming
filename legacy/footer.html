@@ -1,10 +1,10 @@
 ## mako
-## eduNEXT modern-theming — legacy (Django/Mako) footer.
+## Cobalt theme (tutor-modern-theming) — legacy (Django/Mako) footer.
 ##
 ## Second renderer of the SAME footer as the React MFE footer
-## (frontend/edunext-footer/): same MFE_CONFIG keys, same defaults, same markup
+## (frontend/cobalt-footer/): same MFE_CONFIG keys, same defaults, same markup
 ## structure and the same Paragon design tokens (--pgn-*) as
-## EdunextFooter.scss — see docs/decisions/0004. Installed over every
+## CobaltFooter.scss — see docs/decisions/0004. Installed over every
 ## footer.html in the image (core and themes); the original is kept as
 ## footer-original.html.
 
@@ -73,21 +73,21 @@ mfe_config = configuration_helpers.get_value(
 
 # Same default as the React footer: off unless explicitly enabled. When off,
 # delegate to the footer this one replaced (see the else branch at the end).
-enabled = bool(mfe_config.get('ENABLE_EDUNEXT_FOOTER', False))
+enabled = bool(mfe_config.get('ENABLE_COBALT_FOOTER', False))
 
 lms_base_url = mfe_config.get('LMS_BASE_URL') or getattr(settings, 'LMS_ROOT_URL', '')
 
-# Every value and fallback below mirrors frontend/edunext-footer/EdunextFooter.jsx.
-logo_src = mfe_config.get('FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
-logo_url = mfe_config.get('FOOTER_LOGO_URL') or lms_base_url
-logo_alt = mfe_config.get('FOOTER_LOGO_ALT') or _('Platform logo')
-logo_target = mfe_config.get('FOOTER_LOGO_TARGET') or '_self'
+# Every value and fallback below mirrors frontend/cobalt-footer/CobaltFooter.jsx.
+logo_src = mfe_config.get('COBALT_FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
+logo_url = mfe_config.get('COBALT_FOOTER_LOGO_URL') or lms_base_url
+logo_alt = mfe_config.get('COBALT_FOOTER_LOGO_ALT') or _('Platform logo')
+logo_target = mfe_config.get('COBALT_FOOTER_LOGO_TARGET') or '_self'
 
-description = mfe_config.get('FOOTER_DESCRIPTION') or _(
+description = mfe_config.get('COBALT_FOOTER_DESCRIPTION') or _(
     'Empowering learners everywhere with world-class online education.'
 )
 
-nav_columns = mfe_config.get('FOOTER_NAV_COLUMNS') or [
+nav_columns = mfe_config.get('COBALT_FOOTER_NAV_COLUMNS') or [
     {
         'title': _('About'),
         'links': [
@@ -114,7 +114,7 @@ nav_columns = mfe_config.get('FOOTER_NAV_COLUMNS') or [
     },
 ]
 
-social_links = mfe_config.get('FOOTER_SOCIAL_LINKS') or [
+social_links = mfe_config.get('COBALT_FOOTER_SOCIAL_LINKS') or [
     {'key': 'facebook', 'url': 'https://www.facebook.com/EdXOnline', 'label': 'Facebook'},
     {'key': 'twitter', 'url': 'https://twitter.com/edXOnline', 'label': 'X (Twitter)'},
     {'key': 'linkedin', 'url': 'https://www.linkedin.com/school/edx', 'label': 'LinkedIn'},
@@ -123,23 +123,23 @@ social_links = mfe_config.get('FOOTER_SOCIAL_LINKS') or [
     {'key': 'github', 'url': 'https://github.com/openedx', 'label': 'GitHub'},
 ]
 
-extra_links = mfe_config.get('FOOTER_EXTRA_LINKS') or []
+extra_links = mfe_config.get('COBALT_FOOTER_EXTRA_LINKS') or []
 
-copyright_text = mfe_config.get('FOOTER_COPYRIGHT') or _(
+copyright_text = mfe_config.get('COBALT_FOOTER_COPYRIGHT') or _(
     '© {year} eduNEXT. All rights reserved.'
 ).format(year=datetime.date.today().year)
 
-openedx_logo_src = mfe_config.get('FOOTER_OPENEDX_LOGO_SRC') or 'https://logos.openedx.org/edx-openedx-logo-tag.png'
-openedx_logo_url = mfe_config.get('FOOTER_OPENEDX_LOGO_URL') or 'https://open.edx.org/'
-openedx_logo_alt = mfe_config.get('FOOTER_OPENEDX_LOGO_ALT') or _('Powered by Open edX')
+openedx_logo_src = mfe_config.get('COBALT_FOOTER_OPENEDX_LOGO_SRC') or 'https://logos.openedx.org/edx-openedx-logo-tag.png'
+openedx_logo_url = mfe_config.get('COBALT_FOOTER_OPENEDX_LOGO_URL') or 'https://open.edx.org/'
+openedx_logo_alt = mfe_config.get('COBALT_FOOTER_OPENEDX_LOGO_ALT') or _('Powered by Open edX')
 
-edunext_logo_src = mfe_config.get('FOOTER_EDUNEXT_LOGO_SRC') or 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png'
-edunext_logo_url = mfe_config.get('FOOTER_EDUNEXT_LOGO_URL') or 'https://www.edunext.co'
-edunext_logo_alt = mfe_config.get('FOOTER_EDUNEXT_LOGO_ALT') or 'eduNEXT'
+edunext_logo_src = mfe_config.get('COBALT_FOOTER_EDUNEXT_LOGO_SRC') or 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png'
+edunext_logo_url = mfe_config.get('COBALT_FOOTER_EDUNEXT_LOGO_URL') or 'https://www.edunext.co'
+edunext_logo_alt = mfe_config.get('COBALT_FOOTER_EDUNEXT_LOGO_ALT') or 'eduNEXT'
 
 # Optional legacy-only override; by default the background is the same Paragon
 # token as the MFE footer (--pgn-color-primary-700).
-bg_override = mfe_config.get('FOOTER_BACKGROUND_COLOR', '')
+bg_override = mfe_config.get('COBALT_FOOTER_BACKGROUND_COLOR', '')
 
 theme_variant_url = paragon_variant_url(mfe_config)
 
@@ -164,19 +164,19 @@ else:
 <%
   target = link.get('target') or '_self'
 %>\
-<a class="ef-link ef-hyperlink ${extra_class}" href="${link.get('url', '')}" target="${target}"\
+<a class="cf-link cf-hyperlink ${extra_class}" href="${link.get('url', '')}" target="${target}"\
 % if target == '_blank':
  rel="noopener noreferrer"\
 % endif
 >${link.get('txt', '')}\
 % if target == '_blank':
-<span class="ef-external-icon" title="${_('Opens in a new tab')}">${LAUNCH_SVG | n}<span class="sr-only">${_('in a new tab')}</span></span>\
+<span class="cf-external-icon" title="${_('Opens in a new tab')}">${LAUNCH_SVG | n}<span class="sr-only">${_('in a new tab')}</span></span>\
 % endif
 </a>
 </%def>
 
 % if enabled:
-<div class="edunext-footer-wrapper">
+<div class="cobalt-footer-wrapper">
   % if theme_variant_url:
   ## Tenant design tokens (varsify): the same file the MFEs load, so legacy and
   ## MFE footers resolve the same --pgn-* values without depending on the
@@ -184,13 +184,13 @@ else:
   <link rel="stylesheet" type="text/css" href="${theme_variant_url}" />
   % endif
   <style>
-    /* Mirrors frontend/edunext-footer/EdunextFooter.scss. Colors use the same
+    /* Mirrors frontend/cobalt-footer/CobaltFooter.scss. Colors use the same
        --pgn-color-* tokens; their fallbacks are the Paragon defaults, used only
        when no theme variant defines them.
-       Everything is scoped to #footer-edunext and resets the elements the
+       Everything is scoped to #footer-cobalt and resets the elements the
        legacy theme styles globally (h3, p, ul, nav, a, hr, img). */
-    #footer-edunext, #footer-edunext * { box-sizing: border-box; }
-    #footer-edunext {
+    #footer-cobalt, #footer-cobalt * { box-sizing: border-box; }
+    #footer-cobalt {
       background-color: ${bg_override or 'var(--pgn-color-primary-700, #082644)'};
       color: var(--pgn-color-white, #FFFFFF);
       font-family: ${font_family | n};
@@ -201,97 +201,97 @@ else:
       margin: 0;
       border: 0;
     }
-    #footer-edunext h3, #footer-edunext p, #footer-edunext ul, #footer-edunext li,
-    #footer-edunext nav { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+    #footer-cobalt h3, #footer-cobalt p, #footer-cobalt ul, #footer-cobalt li,
+    #footer-cobalt nav { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
     /* Legacy themes set font-family on elements (h3, p, a...), which would
        beat inheritance; every element in the footer uses the footer's font. */
-    #footer-edunext * { font-family: inherit; }
-    #footer-edunext h3 { line-height: ${headings_line_height}; }
-    #footer-edunext p { margin-bottom: 1rem; }
-    #footer-edunext img { border: 0; vertical-align: middle; }
-    #footer-edunext a { box-shadow: none; border: 0; background: none; }
-    #footer-edunext .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    #footer-cobalt * { font-family: inherit; }
+    #footer-cobalt h3 { line-height: ${headings_line_height}; }
+    #footer-cobalt p { margin-bottom: 1rem; }
+    #footer-cobalt img { border: 0; vertical-align: middle; }
+    #footer-cobalt a { box-shadow: none; border: 0; background: none; }
+    #footer-cobalt .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-    #footer-edunext .ef-content { max-width: 1200px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem 1.5rem; }
-    #footer-edunext .ef-top { display: flex; flex-wrap: wrap; gap: 3rem; align-items: flex-start; }
-    #footer-edunext .ef-brand { flex: 1 1 280px; min-width: 220px; max-width: 320px; }
-    #footer-edunext .ef-logo-link { display: inline-block; transition: opacity 0.2s ease; }
-    #footer-edunext .ef-logo-link:hover, #footer-edunext .ef-logo-link:focus { opacity: 0.85; }
-    #footer-edunext .ef-logo { max-height: 40px; width: auto; filter: brightness(0) invert(1); }
-    #footer-edunext .ef-tagline { margin-top: 1rem; font-size: 0.875rem; line-height: 1.6; color: var(--pgn-color-light-300, #F0EEED); max-width: 280px; }
+    #footer-cobalt .cf-content { max-width: 1200px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem 1.5rem; }
+    #footer-cobalt .cf-top { display: flex; flex-wrap: wrap; gap: 3rem; align-items: flex-start; }
+    #footer-cobalt .cf-brand { flex: 1 1 280px; min-width: 220px; max-width: 320px; }
+    #footer-cobalt .cf-logo-link { display: inline-block; transition: opacity 0.2s ease; }
+    #footer-cobalt .cf-logo-link:hover, #footer-cobalt .cf-logo-link:focus { opacity: 0.85; }
+    #footer-cobalt .cf-logo { max-height: 40px; width: auto; filter: brightness(0) invert(1); }
+    #footer-cobalt .cf-tagline { margin-top: 1rem; font-size: 0.875rem; line-height: 1.6; color: var(--pgn-color-light-300, #F0EEED); max-width: 280px; }
 
-    #footer-edunext .ef-powered-by { display: flex; align-items: center; gap: 1.5rem; }
-    #footer-edunext .ef-powered-logo { display: inline-block; transition: opacity 0.2s ease; }
-    #footer-edunext .ef-powered-logo:hover, #footer-edunext .ef-powered-logo:focus { opacity: 0.8; }
-    #footer-edunext .ef-powered-logo img { max-height: 30px; width: auto; }
+    #footer-cobalt .cf-powered-by { display: flex; align-items: center; gap: 1.5rem; }
+    #footer-cobalt .cf-powered-logo { display: inline-block; transition: opacity 0.2s ease; }
+    #footer-cobalt .cf-powered-logo:hover, #footer-cobalt .cf-powered-logo:focus { opacity: 0.8; }
+    #footer-cobalt .cf-powered-logo img { max-height: 30px; width: auto; }
 
-    #footer-edunext .ef-nav-columns { display: flex; flex: 2 1 auto; flex-wrap: wrap; gap: 2.5rem; }
-    #footer-edunext .ef-nav-column { flex: 1 1 140px; min-width: 120px; }
-    #footer-edunext .ef-nav-title {
+    #footer-cobalt .cf-nav-columns { display: flex; flex: 2 1 auto; flex-wrap: wrap; gap: 2.5rem; }
+    #footer-cobalt .cf-nav-column { flex: 1 1 140px; min-width: 120px; }
+    #footer-cobalt .cf-nav-title {
       font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
       color: var(--pgn-color-white, #FFFFFF); margin-bottom: 1rem; padding-bottom: 0.5rem;
       border-bottom: 2px solid var(--pgn-color-brand-base, #9D0054); display: inline-block;
     }
-    #footer-edunext .ef-nav-list { list-style: none; padding: 0; margin: 0; }
-    #footer-edunext .ef-nav-list li { list-style: none; margin-bottom: 0.5rem; }
+    #footer-cobalt .cf-nav-list { list-style: none; padding: 0; margin: 0; }
+    #footer-cobalt .cf-nav-list li { list-style: none; margin-bottom: 0.5rem; }
 
-    #footer-edunext a.ef-link { color: var(--pgn-color-light-300, #F0EEED) !important; font-size: 0.875rem; text-decoration: none !important; transition: color 0.2s ease; }
-    #footer-edunext a.ef-link:hover, #footer-edunext a.ef-link:focus { color: var(--pgn-color-white, #FFFFFF) !important; }
-    #footer-edunext .ef-hyperlink { display: inline-flex; align-items: center; text-align: start; }
-    #footer-edunext .ef-external-icon { display: inline-flex; margin-inline-start: 0.5rem; }
-    #footer-edunext .ef-external-icon svg { width: 1em; height: 1em; }
+    #footer-cobalt a.cf-link { color: var(--pgn-color-light-300, #F0EEED) !important; font-size: 0.875rem; text-decoration: none !important; transition: color 0.2s ease; }
+    #footer-cobalt a.cf-link:hover, #footer-cobalt a.cf-link:focus { color: var(--pgn-color-white, #FFFFFF) !important; }
+    #footer-cobalt .cf-hyperlink { display: inline-flex; align-items: center; text-align: start; }
+    #footer-cobalt .cf-external-icon { display: inline-flex; margin-inline-start: 0.5rem; }
+    #footer-cobalt .cf-external-icon svg { width: 1em; height: 1em; }
 
-    #footer-edunext .ef-divider { border: none; border-top: 1px solid rgba(255, 255, 255, 0.15); height: 0; margin: 2rem 0 1.25rem; background: none; }
-    #footer-edunext .ef-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    #footer-cobalt .cf-divider { border: none; border-top: 1px solid rgba(255, 255, 255, 0.15); height: 0; margin: 2rem 0 1.25rem; background: none; }
+    #footer-cobalt .cf-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
 
-    #footer-edunext .ef-social { display: flex; align-items: center; gap: 0.25rem; }
+    #footer-cobalt .cf-social { display: flex; align-items: center; gap: 0.25rem; }
     /* light-500 and 1.5rem icons: the MFE renders Paragon's IconButton
-       defaults, because the .pgn__icon-btn rule in EdunextFooter.scss does
+       defaults, because the .pgn__icon-btn rule in CobaltFooter.scss does
        not match the btn-icon classes IconButton renders. */
-    #footer-edunext a.ef-social-btn {
+    #footer-cobalt a.cf-social-btn {
       color: var(--pgn-color-light-500, #E1DDDB) !important; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
       width: 2.25rem; height: 2.25rem; padding: 0;
       transition: color 0.2s ease, background-color 0.2s ease;
     }
-    #footer-edunext a.ef-social-btn:hover, #footer-edunext a.ef-social-btn:focus {
+    #footer-cobalt a.cf-social-btn:hover, #footer-cobalt a.cf-social-btn:focus {
       color: var(--pgn-color-white, #FFFFFF) !important; background-color: rgba(255, 255, 255, 0.1) !important;
     }
     /* 1.5rem: Paragon's default icon size, which is what the MFE renders. */
-    #footer-edunext a.ef-social-btn svg { display: block; width: 1.5rem; height: 1.5rem; }
+    #footer-cobalt a.cf-social-btn svg { display: block; width: 1.5rem; height: 1.5rem; }
 
-    #footer-edunext .ef-copyright { font-size: 0.8125rem; color: var(--pgn-color-light-500, #E1DDDB); margin: 0; }
-    #footer-edunext .ef-extra { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-    #footer-edunext .ef-extra-nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    #footer-cobalt .cf-copyright { font-size: 0.8125rem; color: var(--pgn-color-light-500, #E1DDDB); margin: 0; }
+    #footer-cobalt .cf-extra { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    #footer-cobalt .cf-extra-nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
 
     @media (max-width: 768px) {
-      #footer-edunext .ef-top { flex-direction: column; gap: 2rem; }
-      #footer-edunext .ef-brand { max-width: 100%; }
-      #footer-edunext .ef-nav-columns { gap: 1.5rem; }
-      #footer-edunext .ef-bottom { flex-direction: column; align-items: flex-start; }
+      #footer-cobalt .cf-top { flex-direction: column; gap: 2rem; }
+      #footer-cobalt .cf-brand { max-width: 100%; }
+      #footer-cobalt .cf-nav-columns { gap: 1.5rem; }
+      #footer-cobalt .cf-bottom { flex-direction: column; align-items: flex-start; }
     }
   </style>
 
-  <footer id="footer-edunext" class="edunext-footer" role="contentinfo">
-    <div class="ef-content">
+  <footer id="footer-cobalt" class="cobalt-footer" role="contentinfo">
+    <div class="cf-content">
       ## Top section: logo + navigation
-      <div class="ef-top">
-        <div class="ef-brand">
-          <a class="ef-logo-link" href="${logo_url}" target="${logo_target}" aria-label="${logo_alt}">
-            <img class="ef-logo" src="${logo_src}" alt="${logo_alt}"/>
+      <div class="cf-top">
+        <div class="cf-brand">
+          <a class="cf-logo-link" href="${logo_url}" target="${logo_target}" aria-label="${logo_alt}">
+            <img class="cf-logo" src="${logo_src}" alt="${logo_alt}"/>
           </a>
           % if description:
-          <p class="ef-tagline">${description}</p>
+          <p class="cf-tagline">${description}</p>
           % endif
 
-          <div class="ef-nav-column">
-            <h3 class="ef-nav-title">${_('Follow Us')}</h3>
+          <div class="cf-nav-column">
+            <h3 class="cf-nav-title">${_('Follow Us')}</h3>
             <nav aria-label="${_('Follow Us')}">
-              <div class="ef-social">
+              <div class="cf-social">
                 % for link in social_links:
                   <% svg = SOCIAL_SVG.get(link.get('key', '')) %>
                   % if svg:
-                  <a class="ef-social-btn" href="${link.get('url', '')}" target="_blank" rel="noopener noreferrer" aria-label="${link.get('label', link.get('key'))}">${svg | n}</a>
+                  <a class="cf-social-btn" href="${link.get('url', '')}" target="_blank" rel="noopener noreferrer" aria-label="${link.get('label', link.get('key'))}">${svg | n}</a>
                   % endif
                 % endfor
               </div>
@@ -299,12 +299,12 @@ else:
           </div>
         </div>
 
-        <div class="ef-nav-columns">
+        <div class="cf-nav-columns">
           % for column in nav_columns:
-          <div class="ef-nav-column">
-            <h3 class="ef-nav-title">${column.get('title', '')}</h3>
+          <div class="cf-nav-column">
+            <h3 class="cf-nav-title">${column.get('title', '')}</h3>
             <nav aria-label="${column.get('title', '')}">
-              <ul class="ef-nav-list">
+              <ul class="cf-nav-list">
                 % for link in column.get('links', []):
                 <li>${footer_link(link)}</li>
                 % endfor
@@ -315,28 +315,28 @@ else:
         </div>
       </div>
 
-      <hr class="ef-divider"/>
+      <hr class="cf-divider"/>
 
       ## Bottom section: powered-by logos + copyright
-      <div class="ef-bottom">
+      <div class="cf-bottom">
         % if openedx_logo_src or edunext_logo_src:
-        <div class="ef-powered-by">
-          <span class="ef-copyright">${_('Powered by')}</span>
+        <div class="cf-powered-by">
+          <span class="cf-copyright">${_('Powered by')}</span>
           % if openedx_logo_src:
-          <a class="ef-powered-logo" href="${openedx_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${openedx_logo_src}" alt="${openedx_logo_alt}"/></a>
+          <a class="cf-powered-logo" href="${openedx_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${openedx_logo_src}" alt="${openedx_logo_alt}"/></a>
           % endif
           % if edunext_logo_src:
-          <a class="ef-powered-logo" href="${edunext_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${edunext_logo_src}" alt="${edunext_logo_alt}"/></a>
+          <a class="cf-powered-logo" href="${edunext_logo_url}" target="_blank" rel="noopener noreferrer"><img src="${edunext_logo_src}" alt="${edunext_logo_alt}"/></a>
           % endif
         </div>
         % endif
-        <p class="ef-copyright">${copyright_text}</p>
+        <p class="cf-copyright">${copyright_text}</p>
       </div>
 
       ## Extra links row
       % if extra_links:
-      <div class="ef-extra">
-        <nav class="ef-extra-nav">
+      <div class="cf-extra">
+        <nav class="cf-extra-nav">
           % for link in extra_links:
           ${footer_link(link)}
           % endfor

@@ -1,11 +1,11 @@
-// eduNEXT header styles using Paragon design tokens (varsify-compatible), same
-// approach as EdunextFooter.scss. Colors follow the tenant's varsify variants.
+// Cobalt header styles using Paragon design tokens (varsify-compatible), same
+// approach as CobaltFooter.scss. Colors follow the tenant's varsify variants.
 
-.edunext-header {
+.cobalt-header {
   background-color: var(--pgn-color-white);
   border-bottom: 1px solid var(--pgn-color-light-400);
 
-  .ehd-container {
+  .chd-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 1.5rem;
@@ -13,23 +13,23 @@
     gap: 1.5rem;
   }
 
-  .ehd-logo-link {
+  .chd-logo-link {
     display: inline-flex;
     align-items: center;
   }
 
-  .ehd-logo {
+  .chd-logo {
     max-height: 2.25rem;
     width: auto;
   }
 
   // Main navigation
-  .ehd-main-nav {
+  .chd-main-nav {
     flex-wrap: nowrap;
     gap: 0.5rem;
   }
 
-  .ehd-nav-link {
+  .chd-nav-link {
     color: var(--pgn-color-primary-700) !important;
     font-weight: 500;
     text-decoration: none !important;
@@ -41,20 +41,20 @@
   }
 
   // User dropdown toggle
-  .ehd-user-toggle {
+  .chd-user-toggle {
     border-radius: 2rem;
   }
 
-  .ehd-user-menu-content {
+  .chd-user-menu-content {
     box-shadow: var(--pgn-elevation-box-shadow-lg, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
   }
 
   @media (max-width: 768px) {
-    .ehd-main-nav {
+    .chd-main-nav {
       display: none;
     }
 
-    .ehd-container {
+    .chd-container {
       gap: 0.75rem;
     }
   }
