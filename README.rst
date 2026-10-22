@@ -26,6 +26,15 @@ Supported and tested with:
 - Tutor 21 (Ulmo)
 - Tutor 22 (Verawood)
 
+Using it together with tutor-indigo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``tutor-indigo`` (v22.1.0 and later) sets ``PARAGON_THEME_URLS`` at the
+settings level to load its brand CSS. A tenant that defines its own
+``PARAGON_THEME_URLS`` (for example, the varsify CSS) overrides it, so this
+plugin keeps working; tenants without that key get Indigo's brand. See
+``docs/comparativa-indigo-22.1.md``.
+
 Installation
 ------------
 
@@ -373,7 +382,6 @@ Roadmap
 
 - Mobile header (``header_mobile.v1``), learning header and Studio header.
 - Legacy (Mako) header sharing the same ``HEADER_*`` config.
-- Optional ``@edx/brand`` package for global token defaults.
 
 Contributing
 ------------
