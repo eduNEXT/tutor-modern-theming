@@ -13,10 +13,20 @@ Overview
 token-based theming to Open edX Micro-Frontends (MFEs) through the Frontend
 Plugin Framework (plugin slots).
 
-This is the base skeleton: it installs cleanly and exposes the standard Tutor
-plugin surface (config defaults, template rendering, patch loading). The
-theming components (footer/header MFE slot widgets) are added in follow-up
-changes.
+The theme this plugin delivers is called **Cobalt**. The plugin keeps its own
+name (``tutor-modern-theming``, settings ``MODERN_THEMING_*``); everything that
+belongs to the theme uses the ``COBALT`` namespace:
+
+- ``MFE_CONFIG`` keys: ``ENABLE_COBALT_*`` flags and ``COBALT_FOOTER_*``,
+  ``COBALT_HEADER_*`` and ``COBALT_HOME_BANNER_*`` content keys.
+- Components: ``frontend/cobalt-footer/`` (``CobaltFooter``),
+  ``frontend/cobalt-header/`` (``CobaltDesktopHeader``) and
+  ``frontend/cobalt-home-banner/`` (``CobaltHomeBanner``).
+- CSS classes, i18n message ids (``cobalt.*``) and plugin slot widget ids
+  (``cobalt_*``).
+
+See `Upgrading from the eduNEXT-named keys`_ if a site still uses the previous
+key names.
 
 Compatibility
 -------------
@@ -43,7 +53,7 @@ Enable the plugin and save the configuration:
 MFE Footer
 ----------
 
-The plugin ships a React footer (``frontend/edunext-footer/``) and injects it
+The plugin ships a React footer (``frontend/cobalt-footer/``) and injects it
 into the ``org.openedx.frontend.layout.footer.v1`` slot of every styled MFE,
 hiding the default footer. Delivery uses "Option B" (see
 ``docs/decisions/0002``): the component is fetched from this repo by git ref at
@@ -82,8 +92,8 @@ Configuration
 -------------
 
 The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. Set the keys
-through Tutor settings or per tenant (eox-tenant). The eduNEXT footer only
-renders when ``ENABLE_EDUNEXT_FOOTER`` is ``true``; every other key is optional,
+through Tutor settings or per tenant (eox-tenant). The Cobalt footer only
+renders when ``ENABLE_COBALT_FOOTER`` is ``true``; every other key is optional,
 and when it is missing or empty the footer uses the fallback below.
 
 .. list-table::
@@ -92,34 +102,34 @@ and when it is missing or empty the footer uses the fallback below.
 
    * - Key
      - If not set
-   * - ``ENABLE_EDUNEXT_FOOTER``
-     - The default Open edX footer is shown instead of the eduNEXT footer.
-   * - ``FOOTER_LOGO_SRC``
+   * - ``ENABLE_COBALT_FOOTER``
+     - The default Open edX footer is shown instead of the Cobalt footer.
+   * - ``COBALT_FOOTER_LOGO_SRC``
      - ``LOGO_TRADEMARK_URL`` (the platform logo).
-   * - ``FOOTER_LOGO_URL``
+   * - ``COBALT_FOOTER_LOGO_URL``
      - ``LMS_BASE_URL``.
-   * - ``FOOTER_LOGO_ALT``
+   * - ``COBALT_FOOTER_LOGO_ALT``
      - Translated text "Platform logo".
-   * - ``FOOTER_LOGO_TARGET``
+   * - ``COBALT_FOOTER_LOGO_TARGET``
      - ``_self``.
-   * - ``FOOTER_DESCRIPTION``
+   * - ``COBALT_FOOTER_DESCRIPTION``
      - Translated text "Empowering learners everywhere with world-class
        online education."
-   * - ``FOOTER_NAV_COLUMNS``
+   * - ``COBALT_FOOTER_NAV_COLUMNS``
      - Three columns (About, Legal, Connect) linking to ``LMS_BASE_URL`` +
        ``/about``, ``/blog``, ``/careers``, ``/news``, ``/tos``, ``/privacy``,
        ``/accessibility``, ``/contact`` and ``/support``. Some of these pages
        may not exist on a given site; set this key in production.
-   * - ``FOOTER_SOCIAL_LINKS``
+   * - ``COBALT_FOOTER_SOCIAL_LINKS``
      - edX/Open edX accounts on Facebook, X, LinkedIn, Instagram, YouTube
        and GitHub. Set this key in production.
-   * - ``FOOTER_EXTRA_LINKS``
+   * - ``COBALT_FOOTER_EXTRA_LINKS``
      - No extra links.
-   * - ``FOOTER_COPYRIGHT``
+   * - ``COBALT_FOOTER_COPYRIGHT``
      - Translated text "© {current year} eduNEXT. All rights reserved."
-   * - ``FOOTER_OPENEDX_LOGO_SRC`` / ``_URL`` / ``_ALT``
+   * - ``COBALT_FOOTER_OPENEDX_LOGO_SRC`` / ``_URL`` / ``_ALT``
      - Official "Powered by Open edX" logo, linking to https://open.edx.org/.
-   * - ``FOOTER_EDUNEXT_LOGO_SRC`` / ``_URL`` / ``_ALT``
+   * - ``COBALT_FOOTER_EDUNEXT_LOGO_SRC`` / ``_URL`` / ``_ALT``
      - eduNEXT logo, linking to https://www.edunext.co.
 
 Example of the structured keys, as they go in ``MFE_CONFIG`` (Tutor settings or
@@ -128,11 +138,11 @@ the tenant configuration):
 .. code-block:: json
 
    {
-     "ENABLE_EDUNEXT_FOOTER": true,
-     "FOOTER_LOGO_SRC": "https://example.com/static/logo.png",
-     "FOOTER_LOGO_URL": "https://example.com",
-     "FOOTER_DESCRIPTION": "Learn anytime, anywhere.",
-     "FOOTER_NAV_COLUMNS": [
+     "ENABLE_COBALT_FOOTER": true,
+     "COBALT_FOOTER_LOGO_SRC": "https://example.com/static/logo.png",
+     "COBALT_FOOTER_LOGO_URL": "https://example.com",
+     "COBALT_FOOTER_DESCRIPTION": "Learn anytime, anywhere.",
+     "COBALT_FOOTER_NAV_COLUMNS": [
        {
          "title": "About",
          "links": [
@@ -148,20 +158,20 @@ the tenant configuration):
          ]
        }
      ],
-     "FOOTER_SOCIAL_LINKS": [
+     "COBALT_FOOTER_SOCIAL_LINKS": [
        { "key": "linkedin", "url": "https://www.linkedin.com/company/example", "label": "LinkedIn" },
        { "key": "github", "url": "https://github.com/example", "label": "GitHub" }
      ],
-     "FOOTER_EXTRA_LINKS": [
+     "COBALT_FOOTER_EXTRA_LINKS": [
        { "txt": "Accessibility", "url": "https://example.com/accessibility" }
      ],
-     "FOOTER_COPYRIGHT": "© 2026 Example Inc. All rights reserved."
+     "COBALT_FOOTER_COPYRIGHT": "© 2026 Example Inc. All rights reserved."
    }
 
-- ``FOOTER_NAV_COLUMNS``: each column has a ``title`` and a list of ``links``.
-- Links (``FOOTER_NAV_COLUMNS`` and ``FOOTER_EXTRA_LINKS``): ``txt`` and ``url``
+- ``COBALT_FOOTER_NAV_COLUMNS``: each column has a ``title`` and a list of ``links``.
+- Links (``COBALT_FOOTER_NAV_COLUMNS`` and ``COBALT_FOOTER_EXTRA_LINKS``): ``txt`` and ``url``
   are required; ``target`` is optional and defaults to ``_self``.
-- ``FOOTER_SOCIAL_LINKS``: ``key`` selects the icon and must be one of
+- ``COBALT_FOOTER_SOCIAL_LINKS``: ``key`` selects the icon and must be one of
   ``facebook``, ``twitter``, ``linkedin``, ``instagram``, ``youtube`` or
   ``github``; ``label`` is the accessible name of the link.
 
@@ -172,7 +182,7 @@ Legacy (Django/Mako) footer
 ---------------------------
 
 The plugin also ships a legacy footer (``legacy/footer.html``, Mako) that reads
-the **same** ``FOOTER_*`` ``MFE_CONFIG`` keys as the React MFE footer. This keeps
+the **same** ``COBALT_FOOTER_*`` ``MFE_CONFIG`` keys as the React MFE footer. This keeps
 legacy Django pages and the MFEs consistent from a single config source — two
 thin renderers, one config — without compiling React into Django (see
 ``docs/decisions/0004``).
@@ -180,16 +190,16 @@ thin renderers, one config — without compiling React into Django (see
 It is delivered at openedx image build time (same git-ref delivery as the MFE
 side) by **delegation**: every ``lms/templates/footer.html`` in the image — core
 and every theme under ``/openedx/themes`` (e.g. ``bragi``) — is renamed to
-``footer-original.html`` in place, and the eduNEXT footer takes its name.
+``footer-original.html`` in place, and the Cobalt footer takes its name.
 
-``ENABLE_EDUNEXT_FOOTER`` is opt-in (same as the MFE footer). When it is off,
+``ENABLE_COBALT_FOOTER`` is opt-in (same as the MFE footer). When it is off,
 the legacy footer includes ``footer-original.html``, which the theme lookup
 resolves exactly as ``footer.html`` would have been resolved without this
 plugin: the active theme's own footer, its parent's, or Open edX core.
 
 The legacy footer looks the same as the MFE footer: same markup structure, same
 defaults and the same Paragon color tokens (``--pgn-color-*``) as
-``EdunextFooter.scss``. It loads the tenant's tokens itself from
+``CobaltFooter.scss``. It loads the tenant's tokens itself from
 ``MFE_CONFIG["PARAGON_THEME_URLS"]`` (the theme variant, e.g. the varsify CSS),
 the same file the MFEs load, so it does not depend on the legacy theme. Only the
 variant is loaded; the Paragon ``core`` stylesheet would restyle the legacy page.
@@ -230,16 +240,16 @@ This changes the font of every MFE of the tenant, not only the footer.
    Only themes baked into the image are covered: a theme mounted at runtime
    (volume, ``tutor dev``) hides the build-time change. Content parity is
    config-driven; **structure** changes must be kept in sync across both
-   renderers (``frontend/edunext-footer/`` and ``legacy/footer.html``).
+   renderers (``frontend/cobalt-footer/`` and ``legacy/footer.html``).
 
 Legacy footer configuration and fallbacks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The legacy footer reads the same ``MFE_CONFIG`` keys as the MFE footer, resolved
 the same way as ``/api/mfe_config/v1``: tenant configuration first, Django
-settings second. It only renders when ``ENABLE_EDUNEXT_FOOTER`` is ``true``.
+settings second. It only renders when ``ENABLE_COBALT_FOOTER`` is ``true``.
 
-Every other ``FOOTER_*`` key has the same fallback as in the MFE footer (see
+Every other ``COBALT_FOOTER_*`` key has the same fallback as in the MFE footer (see
 `Configuration`_). The differences are:
 
 .. list-table::
@@ -248,28 +258,28 @@ Every other ``FOOTER_*`` key has the same fallback as in the MFE footer (see
 
    * - Key
      - If not set
-   * - ``ENABLE_EDUNEXT_FOOTER``
+   * - ``ENABLE_COBALT_FOOTER``
      - The footer the site would show without this plugin: the active theme's
        footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
    * - ``LMS_BASE_URL`` (used by the default logo URL and navigation links)
      - Django's ``LMS_ROOT_URL``.
    * - ``PARAGON_THEME_URLS``
      - No theme tokens are loaded; colors fall back to Paragon's defaults.
-   * - ``FOOTER_BACKGROUND_COLOR`` (legacy only)
+   * - ``COBALT_FOOTER_BACKGROUND_COLOR`` (legacy only)
      - The same background as the MFE footer, ``--pgn-color-primary-700``. Set
        it only to force a different background on legacy pages.
 
 MFE Home Banner (catalog)
 -------------------------
 
-The plugin also ships a custom home banner (``frontend/edunext-home-banner/``)
+The plugin also ships a custom home banner (``frontend/cobalt-home-banner/``)
 and injects it into the catalog MFE's ``org.openedx.frontend.catalog.home_page.banner``
 slot, hiding the default banner. Same delivery as the footer (Option B); the
 component reuses the catalog MFE's own building blocks via its ``@src`` alias.
 
 Everything customizable comes from ``MFE_CONFIG``, not varsify: varsify cannot
 emit the catalog-specific CSS variables. Use varsify only for Paragon colors.
-The eduNEXT banner only renders when ``ENABLE_EDUNEXT_HOME_BANNER`` is ``true``.
+The Cobalt banner only renders when ``ENABLE_COBALT_HOME_BANNER`` is ``true``.
 
 Home banner configuration and fallbacks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -280,15 +290,15 @@ Home banner configuration and fallbacks
 
    * - Key
      - If not set
-   * - ``ENABLE_EDUNEXT_HOME_BANNER``
-     - The default catalog banner is shown instead of the eduNEXT banner.
-   * - ``HOME_BANNER_BACKGROUND_IMAGE``
+   * - ``ENABLE_COBALT_HOME_BANNER``
+     - The default catalog banner is shown instead of the Cobalt banner.
+   * - ``COBALT_HOME_BANNER_BACKGROUND_IMAGE``
      - The catalog default: no background image.
-   * - ``HOME_BANNER_BACKGROUND_COLOR``
+   * - ``COBALT_HOME_BANNER_BACKGROUND_COLOR``
      - The catalog default: Paragon ``--pgn-color-gray-500``.
-   * - ``HOME_BANNER_TITLE``
+   * - ``COBALT_HOME_BANNER_TITLE``
      - Translated text "Welcome to {SITE_NAME}".
-   * - ``HOME_BANNER_SUBTITLE``
+   * - ``COBALT_HOME_BANNER_SUBTITLE``
      - Translated text "It works! Powered by the Open edX® Platform".
 
 The search field and the promo video keep the catalog behavior: the search field
@@ -298,7 +308,7 @@ shows only when ``ENABLE_COURSE_DISCOVERY`` is ``true``, and the promo video use
 MFE Header (standard desktop)
 -----------------------------
 
-The plugin ships an eduNEXT desktop header (``frontend/edunext-header/``) and
+The plugin ships a Cobalt desktop header (``frontend/cobalt-header/``) and
 injects it into ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default
 + Insert) for the MFEs that use ``frontend-component-header``'s standard header.
 Only that header exposes a whole-header slot; the ``learning`` and ``authoring``
@@ -314,7 +324,7 @@ buttons.
 Header configuration and fallbacks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The eduNEXT header only renders when ``ENABLE_EDUNEXT_HEADER`` is ``true``.
+The Cobalt header only renders when ``ENABLE_COBALT_HEADER`` is ``true``.
 
 .. list-table::
    :header-rows: 1
@@ -322,13 +332,13 @@ The eduNEXT header only renders when ``ENABLE_EDUNEXT_HEADER`` is ``true``.
 
    * - Key
      - If not set
-   * - ``ENABLE_EDUNEXT_HEADER``
-     - The default Open edX desktop header is shown instead of the eduNEXT
+   * - ``ENABLE_COBALT_HEADER``
+     - The default Open edX desktop header is shown instead of the Cobalt
        header.
-   * - ``HEADER_MAIN_MENU``
+   * - ``COBALT_HEADER_MAIN_MENU``
      - The main menu that the host MFE passes to the header; if it passes
        none, no main menu.
-   * - ``HEADER_USER_MENU_EXTRA_LINKS``
+   * - ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``
      - User menu with only Dashboard, Profile, Account and Sign Out.
    * - ``LOGO_URL``
      - The logo the host MFE passes to the header.
@@ -347,32 +357,63 @@ tenant configuration):
 .. code-block:: json
 
    {
-     "ENABLE_EDUNEXT_HEADER": true,
-     "HEADER_MAIN_MENU": [
+     "ENABLE_COBALT_HEADER": true,
+     "COBALT_HEADER_MAIN_MENU": [
        { "txt": "Courses", "url": "https://example.com/courses" },
        { "txt": "Programs", "url": "https://example.com/programs" },
        { "txt": "Blog", "url": "https://blog.example.com", "target": "_blank" }
      ],
-     "HEADER_USER_MENU_EXTRA_LINKS": [
+     "COBALT_HEADER_USER_MENU_EXTRA_LINKS": [
        { "txt": "My certificates", "url": "https://example.com/certificates" },
        { "txt": "Help center", "url": "https://help.example.com" }
      ]
    }
 
-- ``HEADER_MAIN_MENU``: ``txt`` and ``url`` are required; ``target`` is optional
+- ``COBALT_HEADER_MAIN_MENU``: ``txt`` and ``url`` are required; ``target`` is optional
   and defaults to ``_self``.
-- ``HEADER_USER_MENU_EXTRA_LINKS``: ``txt`` and ``url`` are required. The links
+- ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``: ``txt`` and ``url`` are required. The links
   are added to the user dropdown after Dashboard, Profile and Account, and
   before "Sign Out"; they open in the same tab.
 
 Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
 same as the footer.
 
+Upgrading from the eduNEXT-named keys
+-------------------------------------
+
+Earlier versions used keys without a theme namespace. They are not read any
+more; rename them in the Tutor settings and in every tenant configuration
+(eox-tenant) before rebuilding the images:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Before
+     - Now
+   * - ``ENABLE_EDUNEXT_FOOTER``
+     - ``ENABLE_COBALT_FOOTER``
+   * - ``ENABLE_EDUNEXT_HEADER``
+     - ``ENABLE_COBALT_HEADER``
+   * - ``ENABLE_EDUNEXT_HOME_BANNER``
+     - ``ENABLE_COBALT_HOME_BANNER``
+   * - ``FOOTER_*`` (e.g. ``FOOTER_LOGO_SRC``, ``FOOTER_NAV_COLUMNS``)
+     - ``COBALT_FOOTER_*`` (e.g. ``COBALT_FOOTER_LOGO_SRC``)
+   * - ``HEADER_MAIN_MENU`` / ``HEADER_USER_MENU_EXTRA_LINKS``
+     - ``COBALT_HEADER_MAIN_MENU`` / ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``
+   * - ``HOME_BANNER_*`` (e.g. ``HOME_BANNER_TITLE``)
+     - ``COBALT_HOME_BANNER_*`` (e.g. ``COBALT_HOME_BANNER_TITLE``)
+
+The standard Open edX keys the theme also reads (``LMS_BASE_URL``,
+``LOGO_URL``, ``LOGO_TRADEMARK_URL``, ``SITE_NAME``, ``PARAGON_THEME_URLS``,
+etc.) keep their names. ``MODERN_THEMING_GIT_REF`` is a plugin setting and also
+keeps its name.
+
 Roadmap
 -------
 
 - Mobile header (``header_mobile.v1``), learning header and Studio header.
-- Legacy (Mako) header sharing the same ``HEADER_*`` config.
+- Legacy (Mako) header sharing the same ``COBALT_HEADER_*`` config.
 - Optional ``@edx/brand`` package for global token defaults.
 
 Contributing

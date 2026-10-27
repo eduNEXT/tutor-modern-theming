@@ -19,7 +19,7 @@ import {
 } from '@openedx/paragon/icons';
 
 import messages from './messages';
-import './EdunextFooter.scss';
+import './CobaltFooter.scss';
 
 const ICON_MAP = {
   facebook: Facebook,
@@ -39,7 +39,7 @@ const DEFAULT_SOCIAL_LINKS = [
   { key: 'github', url: 'https://github.com/openedx', label: 'GitHub' },
 ];
 
-const EdunextFooter = () => {
+const CobaltFooter = () => {
   const { formatMessage } = useIntl();
   const { config } = useContext(AppContext);
   const cfg = getConfig();
@@ -48,15 +48,15 @@ const EdunextFooter = () => {
   // Hooks must run unconditionally, so this is computed before the
   // feature-flag early return below.
   const footerConfig = useMemo(() => ({
-    logoSrc: cfg.FOOTER_LOGO_SRC || config.LOGO_TRADEMARK_URL,
-    logoUrl: cfg.FOOTER_LOGO_URL || config.LMS_BASE_URL,
-    logoAlt: cfg.FOOTER_LOGO_ALT || formatMessage(messages.logoAlt),
-    logoTarget: cfg.FOOTER_LOGO_TARGET || '_self',
+    logoSrc: cfg.COBALT_FOOTER_LOGO_SRC || config.LOGO_TRADEMARK_URL,
+    logoUrl: cfg.COBALT_FOOTER_LOGO_URL || config.LMS_BASE_URL,
+    logoAlt: cfg.COBALT_FOOTER_LOGO_ALT || formatMessage(messages.logoAlt),
+    logoTarget: cfg.COBALT_FOOTER_LOGO_TARGET || '_self',
 
-    description: cfg.FOOTER_DESCRIPTION || formatMessage(messages.tagline),
+    description: cfg.COBALT_FOOTER_DESCRIPTION || formatMessage(messages.tagline),
 
     // Navigation links: array of { title, links: [{ txt, url, target }] }
-    navColumns: cfg.FOOTER_NAV_COLUMNS || [
+    navColumns: cfg.COBALT_FOOTER_NAV_COLUMNS || [
       {
         title: formatMessage(messages.aboutTitle),
         links: [
@@ -84,28 +84,28 @@ const EdunextFooter = () => {
     ],
 
     // Social links: array of { key, url, label }
-    socialLinks: cfg.FOOTER_SOCIAL_LINKS || DEFAULT_SOCIAL_LINKS,
+    socialLinks: cfg.COBALT_FOOTER_SOCIAL_LINKS || DEFAULT_SOCIAL_LINKS,
 
     // Extra links row (like the legacy footer_extralinks)
-    extraLinks: cfg.FOOTER_EXTRA_LINKS || [],
+    extraLinks: cfg.COBALT_FOOTER_EXTRA_LINKS || [],
 
     // Copyright text
-    copyright: cfg.FOOTER_COPYRIGHT || null,
+    copyright: cfg.COBALT_FOOTER_COPYRIGHT || null,
 
     // "Powered by" logos
-    openedxLogoSrc: cfg.FOOTER_OPENEDX_LOGO_SRC || 'https://logos.openedx.org/edx-openedx-logo-tag.png',
-    openedxLogoUrl: cfg.FOOTER_OPENEDX_LOGO_URL || 'https://open.edx.org/',
-    openedxLogoAlt: cfg.FOOTER_OPENEDX_LOGO_ALT || formatMessage(messages.poweredByOpenEdx),
+    openedxLogoSrc: cfg.COBALT_FOOTER_OPENEDX_LOGO_SRC || 'https://logos.openedx.org/edx-openedx-logo-tag.png',
+    openedxLogoUrl: cfg.COBALT_FOOTER_OPENEDX_LOGO_URL || 'https://open.edx.org/',
+    openedxLogoAlt: cfg.COBALT_FOOTER_OPENEDX_LOGO_ALT || formatMessage(messages.poweredByOpenEdx),
 
-    edunextLogoSrc: cfg.FOOTER_EDUNEXT_LOGO_SRC || 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png',
-    edunextLogoUrl: cfg.FOOTER_EDUNEXT_LOGO_URL || 'https://www.edunext.co',
-    edunextLogoAlt: cfg.FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
+    edunextLogoSrc: cfg.COBALT_FOOTER_EDUNEXT_LOGO_SRC || 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png',
+    edunextLogoUrl: cfg.COBALT_FOOTER_EDUNEXT_LOGO_URL || 'https://www.edunext.co',
+    edunextLogoAlt: cfg.COBALT_FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
   }), [config, cfg, formatMessage]);
 
-  // Runtime kill-switch: when ENABLE_EDUNEXT_FOOTER is falsy, fall back to
+  // Runtime kill-switch: when ENABLE_COBALT_FOOTER is falsy, fall back to
   // the default Open edX footer. Placed after all hooks so the rules of
   // hooks are respected.
-  if (!cfg?.ENABLE_EDUNEXT_FOOTER) {
+  if (!cfg?.ENABLE_COBALT_FOOTER) {
     return <DefaultFooter />;
   }
 
@@ -260,4 +260,4 @@ const EdunextFooter = () => {
   );
 };
 
-export default EdunextFooter;
+export default CobaltFooter;

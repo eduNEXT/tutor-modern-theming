@@ -16,11 +16,11 @@ import {
 } from '@openedx/paragon';
 
 import messages from './messages';
-import './EdunextHeader.scss';
+import './CobaltHeader.scss';
 
 // Build the authenticated user dropdown items: the standard Open edX items
 // (Dashboard / Profile / Account / Sign Out) plus any extras configured via
-// MFE_CONFIG.HEADER_USER_MENU_EXTRA_LINKS. Sign Out always stays last.
+// MFE_CONFIG.COBALT_HEADER_USER_MENU_EXTRA_LINKS. Sign Out always stays last.
 const buildUserMenu = (cfg, username, formatMessage) => {
   const lms = cfg.LMS_BASE_URL || '';
   const profileBase = cfg.ACCOUNT_PROFILE_URL || cfg.PROFILE_MICROFRONTEND_URL || lms;
@@ -32,7 +32,7 @@ const buildUserMenu = (cfg, username, formatMessage) => {
     { txt: formatMessage(messages.account), url: accountBase },
   ];
 
-  (cfg.HEADER_USER_MENU_EXTRA_LINKS || []).forEach((link) => {
+  (cfg.COBALT_HEADER_USER_MENU_EXTRA_LINKS || []).forEach((link) => {
     if (link && link.url && link.txt) {
       items.push({ txt: link.txt, url: link.url });
     }
@@ -45,7 +45,7 @@ const buildUserMenu = (cfg, username, formatMessage) => {
   return items;
 };
 
-const EdunextDesktopHeader = (props) => {
+const CobaltDesktopHeader = (props) => {
   const { formatMessage } = useIntl();
   const { authenticatedUser } = useContext(AppContext);
   const cfg = getConfig();
@@ -58,9 +58,9 @@ const EdunextDesktopHeader = (props) => {
   const logoAlt = cfg.SITE_NAME || props.logoAltText || 'Home';
   const logoDestination = props.logoDestination || cfg.LMS_BASE_URL || '/';
 
-  // Main menu: MFE_CONFIG.HEADER_MAIN_MENU wins; otherwise reuse the menu the
-  // host MFE already passed to the header slot (props.mainMenu).
-  const mainLinks = cfg.HEADER_MAIN_MENU || props.mainMenu || [];
+  // Main menu: MFE_CONFIG.COBALT_HEADER_MAIN_MENU wins; otherwise reuse the
+  // menu the host MFE already passed to the header slot (props.mainMenu).
+  const mainLinks = cfg.COBALT_HEADER_MAIN_MENU || props.mainMenu || [];
 
   const handleLinkClick = (event) => {
     sendTrackEvent('edx.bi.header.link', {
@@ -69,22 +69,22 @@ const EdunextDesktopHeader = (props) => {
     });
   };
 
-  // Runtime kill-switch: when ENABLE_EDUNEXT_HEADER is falsy, fall back to
+  // Runtime kill-switch: when ENABLE_COBALT_HEADER is falsy, fall back to
   // the default Open edX desktop header with the props the slot received.
   // Placed after all hooks so the rules of hooks are respected.
-  if (!cfg?.ENABLE_EDUNEXT_HEADER) {
+  if (!cfg?.ENABLE_COBALT_HEADER) {
     return <DefaultDesktopHeader {...props} />;
   }
 
   const renderMainMenu = () => (
-    <Nav className="ehd-main-nav" aria-label={formatMessage(messages.mainMenu)}>
+    <Nav className="chd-main-nav" aria-label={formatMessage(messages.mainMenu)}>
       {mainLinks.map((link) => (
         <Nav.Item key={link.url}>
           <Nav.Link
             href={link.url}
             target={link.target || '_self'}
             onClick={handleLinkClick}
-            className="ehd-nav-link"
+            className="chd-nav-link"
           >
             {link.txt}
           </Nav.Link>
@@ -96,16 +96,16 @@ const EdunextDesktopHeader = (props) => {
   const renderUserMenu = () => {
     const items = buildUserMenu(cfg, username, formatMessage);
     return (
-      <Dropdown className="ehd-user-menu">
+      <Dropdown className="chd-user-menu">
         <Dropdown.Toggle
-          id="edunext-header-user-menu"
+          id="cobalt-header-user-menu"
           variant="outline-primary"
-          className="ehd-user-toggle d-inline-flex align-items-center"
+          className="chd-user-toggle d-inline-flex align-items-center"
         >
           <Avatar size="sm" src={avatarSrc} alt={username} className="mr-2" />
           <span className="d-none d-md-inline">{username}</span>
         </Dropdown.Toggle>
-        <Dropdown.Menu alignRight className="ehd-user-menu-content">
+        <Dropdown.Menu alignRight className="chd-user-menu-content">
           {items.map((item) => (
             <Dropdown.Item key={item.url} href={item.url} onClick={handleLinkClick}>
               {item.txt}
@@ -120,11 +120,11 @@ const EdunextDesktopHeader = (props) => {
     const loginUrl = cfg.LOGIN_URL || `${cfg.LMS_BASE_URL}/login`;
     const registerUrl = `${cfg.LMS_BASE_URL}/register`;
     return (
-      <div className="ehd-auth-actions d-flex align-items-center">
+      <div className="chd-auth-actions d-flex align-items-center">
         <Hyperlink
           destination={loginUrl}
           onClick={handleLinkClick}
-          className="ehd-nav-link mr-3"
+          className="chd-nav-link mr-3"
         >
           {formatMessage(messages.signIn)}
         </Hyperlink>
@@ -136,23 +136,23 @@ const EdunextDesktopHeader = (props) => {
   };
 
   return (
-    <header className="edunext-header">
+    <header className="cobalt-header">
       <a className="sr-only sr-only-focusable" href="#main">
         {formatMessage(messages.skipNav)}
       </a>
-      <div className="ehd-container d-flex align-items-center">
+      <div className="chd-container d-flex align-items-center">
         <a
           href={logoDestination}
-          className="ehd-logo-link"
+          className="chd-logo-link"
           aria-label={logoAlt}
           onClick={handleLinkClick}
         >
-          <img className="ehd-logo" src={logoSrc} alt={logoAlt} />
+          <img className="chd-logo" src={logoSrc} alt={logoAlt} />
         </a>
 
         {renderMainMenu()}
 
-        <div className="ehd-right ml-auto d-flex align-items-center">
+        <div className="chd-right ml-auto d-flex align-items-center">
           {loggedIn ? renderUserMenu() : renderLoggedOut()}
         </div>
       </div>
@@ -160,4 +160,4 @@ const EdunextDesktopHeader = (props) => {
   );
 };
 
-export default EdunextDesktopHeader;
+export default CobaltDesktopHeader;

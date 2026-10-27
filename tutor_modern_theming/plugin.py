@@ -1,10 +1,11 @@
 """
 tutor-modern-theming: eduNEXT modern theming plugin for Open edX.
 
-Base skeleton. This module wires only the standard Tutor plugin surface —
-config defaults, template rendering and patch loading — so the plugin
-installs and `tutor config save` runs clean. Frontend theming components
-(footer/header MFE slots) are added in a follow-up change.
+The plugin delivers the Cobalt theme: MFE footer, desktop header and catalog
+home banner (plugin slots), plus a legacy (Mako) footer. Everything the theme
+reads from MFE_CONFIG is namespaced with COBALT (ENABLE_COBALT_*,
+COBALT_FOOTER_*, COBALT_HEADER_*, COBALT_HOME_BANNER_*); the plugin's own Tutor
+settings keep the plugin name (MODERN_THEMING_*).
 
 Compatible with Tutor 21 (Ulmo) and Tutor 22 (Verawood): only stable
 plugin APIs are used here.
@@ -71,7 +72,7 @@ for path in glob(
 ########################################
 #
 # Delivery follows "Option B" (see docs/decisions/0002): the React component
-# lives in this repo under frontend/edunext-footer/ and is copied into each
+# lives in this repo under frontend/cobalt-footer/ and is copied into each
 # MFE source tree at build time, so it compiles through the MFE's own webpack
 # (SCSS and i18n stay intact) using the MFE's own react/paragon versions.
 #
@@ -104,7 +105,7 @@ MODERN_THEMING_REPO = "https://github.com/eduNEXT/tutor-modern-theming.git"
 # MFEs whose compiled bundle exposes org.openedx.frontend.layout.footer.v1.
 # authoring/Studio uses a different slot (studio_footer.v1) and is left to a
 # follow-up.
-MODERN_THEMING_FOOTER_MFES = [
+COBALT_FOOTER_MFES = [
     "account",
     "catalog",
     "communications",
@@ -119,7 +120,7 @@ MODERN_THEMING_FOOTER_MFES = [
 FOOTER_SLOT_ID = "org.openedx.frontend.layout.footer.v1"
 
 # Plugins injected into the footer slot: hide the default footer, insert
-# EdunextFooter. EdunextFooter is brought into scope by the per-app
+# CobaltFooter. CobaltFooter is brought into scope by the per-app
 # runtime-definitions patch below, which tutor-mfe emits right before the
 # addPlugins() call this config feeds — so there is no temporal-dead-zone.
 FOOTER_SLOT_CONFIG = """
@@ -130,14 +131,14 @@ FOOTER_SLOT_CONFIG = """
 {
     op: PLUGIN_OPERATIONS.Insert,
     widget: {
-        id: 'modern_theming_footer',
+        id: 'cobalt_footer',
         type: DIRECT_PLUGIN,
-        RenderWidget: EdunextFooter,
+        RenderWidget: CobaltFooter,
     },
 },
 """
 
-for mfe in MODERN_THEMING_FOOTER_MFES:
+for mfe in COBALT_FOOTER_MFES:
     # 1. Delivery: fetch this repo at build time and copy the component into
     #    the MFE source tree.
     hooks.Filters.ENV_PATCHES.add_item(
@@ -146,34 +147,34 @@ for mfe in MODERN_THEMING_FOOTER_MFES:
             "ADD --keep-git-dir=true "
             + MODERN_THEMING_REPO
             + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming\n"
-            + "RUN cp -r /tmp/tutor-modern-theming/frontend/edunext-footer "
-            + "src/edunext-footer",
+            + "RUN cp -r /tmp/tutor-modern-theming/frontend/cobalt-footer "
+            + "src/cobalt-footer",
         )
     )
-    # 2. Definition: bring EdunextFooter into env.config.jsx scope for this MFE.
+    # 2. Definition: bring CobaltFooter into env.config.jsx scope for this MFE.
     #    require() (not a top-level import) because env.config.jsx is shared by
     #    every MFE and only these have the copied files.
     hooks.Filters.ENV_PATCHES.add_item(
         (
             f"mfe-env-config-runtime-definitions-{mfe}",
-            "const EdunextFooter = require('./src/edunext-footer').default;",
+            "const CobaltFooter = require('./src/cobalt-footer').default;",
         )
     )
     # 3. Wiring: register the footer slot for this MFE.
     PLUGIN_SLOTS.add_item((mfe, FOOTER_SLOT_ID, FOOTER_SLOT_CONFIG))
 
 # Enable the footer by default. Tenants can set
-# MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = False (via settings or eox-tenant) to
+# MFE_CONFIG["ENABLE_COBALT_FOOTER"] = False (via settings or eox-tenant) to
 # fall back to the default Open edX footer without rebuilding.
 hooks.Filters.ENV_PATCHES.add_items(
     [
         (
             "openedx-lms-development-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_FOOTER"] = True',
         ),
         (
             "openedx-lms-production-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_FOOTER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_FOOTER"] = True',
         ),
     ]
 )
@@ -184,15 +185,16 @@ hooks.Filters.ENV_PATCHES.add_items(
 ########################################
 #
 # Same config, second renderer (see docs/decisions/0004). The plugin ships a
-# Mako footer (legacy/footer.html) that reads the SAME FOOTER_* MFE_CONFIG keys
-# as the React MFE footer, so legacy Django pages and the MFEs stay consistent
-# from a single config source — without compiling React into Django.
+# Mako footer (legacy/footer.html) that reads the SAME COBALT_FOOTER_*
+# MFE_CONFIG keys as the React MFE footer, so legacy Django pages and the MFEs
+# stay consistent from a single config source — without compiling React into
+# Django.
 #
 # Delegation, not replacement: comprehensive themes (e.g. bragi) ship their own
 # lms/templates/footer.html, which wins over core in the template lookup. So at
 # image build time, every footer.html in the image — core and every theme — is
 # renamed to footer-original.html in place, and ours takes its name. When
-# ENABLE_EDUNEXT_FOOTER is off, ours includes footer-original.html, which the
+# ENABLE_COBALT_FOOTER is off, ours includes footer-original.html, which the
 # theme lookup resolves exactly like footer.html would have been resolved
 # without this plugin: the active theme's own footer, its parent's, or core's.
 #
@@ -235,9 +237,9 @@ BANNER_SLOT_CONFIG = """
 {
     op: PLUGIN_OPERATIONS.Insert,
     widget: {
-        id: 'modern_theming_home_banner',
+        id: 'cobalt_home_banner',
         type: DIRECT_PLUGIN,
-        RenderWidget: EdunextHomeBanner,
+        RenderWidget: CobaltHomeBanner,
     },
 },
 """
@@ -250,35 +252,35 @@ hooks.Filters.ENV_PATCHES.add_item(
         "ADD --keep-git-dir=true "
         + MODERN_THEMING_REPO
         + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-banner\n"
-        + "RUN cp -r /tmp/tutor-modern-theming-banner/frontend/edunext-home-banner "
-        + "src/edunext-home-banner",
+        + "RUN cp -r /tmp/tutor-modern-theming-banner/frontend/cobalt-home-banner "
+        + "src/cobalt-home-banner",
     )
 )
-# 2. Definition: bring EdunextHomeBanner into env.config.jsx scope for catalog.
+# 2. Definition: bring CobaltHomeBanner into env.config.jsx scope for catalog.
 hooks.Filters.ENV_PATCHES.add_item(
     (
         f"mfe-env-config-runtime-definitions-{BANNER_MFE}",
-        "const EdunextHomeBanner = require('./src/edunext-home-banner').default;",
+        "const CobaltHomeBanner = require('./src/cobalt-home-banner').default;",
     )
 )
 # 3. Wiring: register the home banner slot for catalog.
 PLUGIN_SLOTS.add_item((BANNER_MFE, BANNER_SLOT_ID, BANNER_SLOT_CONFIG))
 
 # Enable the custom banner by default. Tenants can set
-# MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = False to fall back to the default
+# MFE_CONFIG["ENABLE_COBALT_HOME_BANNER"] = False to fall back to the default
 # catalog banner without rebuilding. The banner content itself (background
 # image, title, subtitle) is set per-tenant through these MFE_CONFIG keys:
-#   HOME_BANNER_BACKGROUND_IMAGE, HOME_BANNER_BACKGROUND_COLOR,
-#   HOME_BANNER_TITLE, HOME_BANNER_SUBTITLE
+#   COBALT_HOME_BANNER_BACKGROUND_IMAGE, COBALT_HOME_BANNER_BACKGROUND_COLOR,
+#   COBALT_HOME_BANNER_TITLE, COBALT_HOME_BANNER_SUBTITLE
 hooks.Filters.ENV_PATCHES.add_items(
     [
         (
             "openedx-lms-development-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_HOME_BANNER"] = True',
         ),
         (
             "openedx-lms-production-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_HOME_BANNER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_HOME_BANNER"] = True',
         ),
     ]
 )
@@ -290,10 +292,10 @@ hooks.Filters.ENV_PATCHES.add_items(
 #
 # Same Option B delivery as the footer. Only the STANDARD header
 # (frontend-component-header's DesktopHeader) exposes a whole-header slot
-# (header_desktop.v1), so this covers the MFEs that use it. The EdunextHeader
+# (header_desktop.v1), so this covers the MFEs that use it. The CobaltHeader
 # reuses the auth data from AppContext / the slot props (login state, avatar,
-# user menu) instead of rebuilding it, and reads MFE_CONFIG for the eduNEXT
-# extras (HEADER_MAIN_MENU, HEADER_USER_MENU_EXTRA_LINKS).
+# user menu) instead of rebuilding it, and reads MFE_CONFIG for the Cobalt
+# extras (COBALT_HEADER_MAIN_MENU, COBALT_HEADER_USER_MENU_EXTRA_LINKS).
 #
 # Not covered here (no whole-header slot): the learning header (LearningHeader)
 # and Studio header (StudioHeader), plus the mobile header (header_mobile.v1).
@@ -303,7 +305,7 @@ hooks.Filters.ENV_PATCHES.add_items(
 # org.openedx.frontend.layout.header_desktop.v1). catalog's CatalogHeader wraps
 # that standard Header. Excludes learning (LearningHeader) and authoring
 # (StudioHeader).
-MODERN_THEMING_HEADER_MFES = [
+COBALT_HEADER_MFES = [
     "account",
     "catalog",
     "communications",
@@ -324,14 +326,14 @@ HEADER_DESKTOP_SLOT_CONFIG = """
 {
     op: PLUGIN_OPERATIONS.Insert,
     widget: {
-        id: 'modern_theming_desktop_header',
+        id: 'cobalt_desktop_header',
         type: DIRECT_PLUGIN,
-        RenderWidget: EdunextDesktopHeader,
+        RenderWidget: CobaltDesktopHeader,
     },
 },
 """
 
-for mfe in MODERN_THEMING_HEADER_MFES:
+for mfe in COBALT_HEADER_MFES:
     # 1. Delivery: copy the header component into the MFE source tree. Uses a
     #    distinct /tmp path so it does not collide with the footer's ADD.
     hooks.Filters.ENV_PATCHES.add_item(
@@ -340,33 +342,32 @@ for mfe in MODERN_THEMING_HEADER_MFES:
             "ADD --keep-git-dir=true "
             + MODERN_THEMING_REPO
             + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-header\n"
-            + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/edunext-header "
-            + "src/edunext-header",
+            + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/cobalt-header "
+            + "src/cobalt-header",
         )
     )
-    # 2. Definition: bring EdunextDesktopHeader into env.config.jsx scope.
+    # 2. Definition: bring CobaltDesktopHeader into env.config.jsx scope.
     hooks.Filters.ENV_PATCHES.add_item(
         (
             f"mfe-env-config-runtime-definitions-{mfe}",
-            "const EdunextDesktopHeader = "
-            "require('./src/edunext-header').default;",
+            "const CobaltDesktopHeader = require('./src/cobalt-header').default;",
         )
     )
     # 3. Wiring: register the desktop header slot for this MFE.
     PLUGIN_SLOTS.add_item((mfe, HEADER_DESKTOP_SLOT_ID, HEADER_DESKTOP_SLOT_CONFIG))
 
 # Enable the header by default. Tenants can set
-# MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = False to fall back to the default
+# MFE_CONFIG["ENABLE_COBALT_HEADER"] = False to fall back to the default
 # Open edX desktop header without rebuilding.
 hooks.Filters.ENV_PATCHES.add_items(
     [
         (
             "openedx-lms-development-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_HEADER"] = True',
         ),
         (
             "openedx-lms-production-settings",
-            'MFE_CONFIG["ENABLE_EDUNEXT_HEADER"] = True',
+            'MFE_CONFIG["ENABLE_COBALT_HEADER"] = True',
         ),
     ]
 )
