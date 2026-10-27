@@ -32,8 +32,10 @@ Using it together with tutor-indigo
 ``tutor-indigo`` (v22.1.0 and later) sets ``PARAGON_THEME_URLS`` at the
 settings level to load its brand CSS. A tenant that defines its own
 ``PARAGON_THEME_URLS`` (for example, the varsify CSS) overrides it, so this
-plugin keeps working; tenants without that key get Indigo's brand. See
-``docs/comparativa-indigo-22.1.md``.
+plugin keeps working; tenants without that key get Indigo's brand. See the
+`Tutor Indigo v22.1.0 comparison
+<https://github.com/eduNEXT/heimdall-notebook/blob/main/explanation/comparativa-tutor-indigo-22.1.md>`_
+in heimdall-notebook.
 
 Installation
 ------------
