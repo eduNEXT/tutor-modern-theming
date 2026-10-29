@@ -66,8 +66,11 @@ Quedan fuera de esta decisión, para ADR posteriores:
   desde la carpeta `dist` de `frontend-component-header`, porque la librería no
   lo exporta en su índice. Si una versión futura cambia esa ruta, el import
   debe ajustarse.
-- En `learning`, `authoring`, en móvil y en las páginas legacy el header sigue
-  siendo el de Open edX, hasta que se tomen las decisiones pendientes.
+- En `authoring` y en móvil el header sigue siendo el de Open edX, hasta que se
+  tomen las decisiones pendientes. `learning` (con `CobaltLearningHeader`, en el
+  slot `header_learning.v1` del propio MFE) y las páginas legacy (con
+  `legacy/header/header.html`, igual que el footer de la decisión 0004) ya usan
+  el header Cobalt.
 - El componente se descarga en una carpeta temporal propia durante el build
   para no colisionar con la del footer en los MFE que reciben ambos.
 

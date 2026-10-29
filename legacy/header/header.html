@@ -1,0 +1,378 @@
+## mako
+## Cobalt theme (tutor-modern-theming) — legacy (Django/Mako) desktop header.
+##
+## Second renderer of the SAME header as the React MFE header
+## (frontend/cobalt-header/): same MFE_CONFIG keys, same defaults, same markup
+## structure and the same Paragon design tokens (--pgn-*) as
+## CobaltHeader.scss, like legacy/footer.html does for the footer. Meant to be
+## installed over every lms/templates/header/header.html in the image (core and
+## themes), keeping the original as header/header-original.html.
+##
+## Not mirrored from the MFE: the skip link (main.html already renders one) and
+## the outbound-link tracking events.
+
+<%page expression_filter="h" args="online_help_token, use_cookie_banner=False"/>
+<%namespace name='static' file='../static_content.html'/>
+<%!
+from urllib.parse import quote
+
+from django.conf import settings
+from django.utils.translation import gettext as _
+
+from lms.djangoapps.branding import api as branding_api
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
+
+
+# Paragon's default avatar (src/Avatar/default-avatar.svg). The MFEs never
+# hydrate a user avatar, so the React header always renders this one.
+DEFAULT_AVATAR_SRC = (
+    "data:image/svg+xml,%3Csvg width='36' height='36' viewBox='0 0 36 36' fill='none' "
+    "xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='36' height='36' fill='white'/%3E"
+    "%3Cpath d='M18 18C20.21 18 22 16.21 22 14C22 11.79 20.21 10 18 10C15.79 10 14 11.79 14 14C14 "
+    "16.21 15.79 18 18 18ZM18 20C15.33 20 10 21.34 10 24V26H26V24C26 21.34 20.67 20 18 20Z' "
+    "fill='%2300262B'/%3E%3C/svg%3E"
+)
+
+
+def _theme_url(entry, key='default'):
+    """URL of a PARAGON_THEME_URLS entry, in either {"url"} or {"urls": {...}} form."""
+    if not isinstance(entry, dict):
+        return ''
+    urls = entry.get('urls')
+    if isinstance(urls, dict):
+        return urls.get(key) or ''
+    return entry.get('url', '') if key == 'default' else ''
+
+
+def paragon_variant_url(mfe_config):
+    """Same as legacy/footer.html: the tenant's varsify variant (--pgn-* only)."""
+    urls = mfe_config.get('PARAGON_THEME_URLS') or {}
+    variants = urls.get('variants') or {}
+    name = (urls.get('defaults') or {}).get('light') or 'light'
+    return _theme_url(variants.get(name) or next(iter(variants.values()), None))
+
+
+def uses_theme_typography(mfe_config):
+    """Same as legacy/footer.html: theme typography only with a brandOverride."""
+    core = (mfe_config.get('PARAGON_THEME_URLS') or {}).get('core')
+    return bool(_theme_url(core, 'brandOverride'))
+%>
+
+<%
+# Resolve MFE_CONFIG exactly like the MFE config API (/api/mfe_config/v1) that
+# feeds the React header: tenant/site configuration first, Django settings as
+# the fallback.
+mfe_config = configuration_helpers.get_value(
+    'MFE_CONFIG', getattr(settings, 'MFE_CONFIG', {}),
+) or {}
+
+# Same default as the React header: off unless explicitly enabled. When off,
+# delegate to the header this one replaced (see the else branch at the end).
+enabled = bool(mfe_config.get('ENABLE_COBALT_HEADER', False))
+
+lms_base_url = mfe_config.get('LMS_BASE_URL') or getattr(settings, 'LMS_ROOT_URL', '')
+
+# Every value and fallback below mirrors frontend/cobalt-header/CobaltDesktopHeader.jsx
+# plus the props frontend-component-header's Header passes to the slot.
+logo_src = mfe_config.get('LOGO_URL') or branding_api.get_logo_url(is_secure)
+logo_alt = mfe_config.get('SITE_NAME') or static.get_platform_name() or _('Home')
+logo_destination = lms_base_url + '/dashboard'
+
+# Only COBALT_HEADER_MAIN_MENU, like the React header: no menu when unset.
+main_links = mfe_config.get('COBALT_HEADER_MAIN_MENU') or []
+
+# Course pages: course lockup in place of the main menu, like CobaltLearningHeader (frontend/cobalt-header/CobaltLearningHeader.jsx).
+course = context.get('course', None)
+if course:
+    course_org = course.display_org_with_default
+    course_number = course.display_number_with_default
+    course_title = course.display_name_with_default
+    if settings.FEATURES.get('CUSTOM_COURSES_EDX', False):
+        from lms.djangoapps.ccx.overrides import get_current_ccx
+        ccx = get_current_ccx(course.id)
+        if ccx:
+            course_title = ccx.display_name
+
+# Help link before the user menu (CobaltHeaderBase.jsx), when SUPPORT_URL is set.
+support_url = mfe_config.get('SUPPORT_URL') or configuration_helpers.get_value(
+    'SUPPORT_SITE_LINK', getattr(settings, 'SUPPORT_SITE_LINK', ''),
+)
+
+logged_in = user.is_authenticated
+if logged_in:
+    real_user = getattr(user, 'real_user', user)
+    username = real_user.username
+    avatar_src = DEFAULT_AVATAR_SRC
+
+    profile_base = (
+        mfe_config.get('ACCOUNT_PROFILE_URL')
+        or mfe_config.get('PROFILE_MICROFRONTEND_URL')
+        or lms_base_url
+    )
+    account_url = mfe_config.get('ACCOUNT_SETTINGS_URL') or lms_base_url + '/account/settings'
+    user_menu = [
+        {'txt': _('Dashboard'), 'url': lms_base_url + '/dashboard'},
+        {'txt': _('Profile'), 'url': profile_base + '/u/' + username},
+        {'txt': _('Account'), 'url': account_url},
+    ]
+    if mfe_config.get('ORDER_HISTORY_URL'):
+        user_menu.append({'txt': _('Order History'), 'url': mfe_config['ORDER_HISTORY_URL']})
+    for link in mfe_config.get('COBALT_HEADER_USER_MENU_EXTRA_LINKS') or []:
+        if isinstance(link, dict) and link.get('url') and link.get('txt'):
+            user_menu.append({'txt': link['txt'], 'url': link['url']})
+    user_menu.append({'txt': _('Sign Out'), 'url': mfe_config.get('LOGOUT_URL') or lms_base_url + '/logout'})
+else:
+    # Both bring the learner back to this page, like the React header.
+    here = quote(request.build_absolute_uri(), safe='')
+    login_url = (mfe_config.get('LOGIN_URL') or lms_base_url + '/login') + '?next=' + here
+    register_url = lms_base_url + '/register?next=' + here
+
+theme_variant_url = paragon_variant_url(mfe_config)
+
+# Typography: same rule as legacy/footer.html, so the header renders the same
+# font as the MFE header.
+PARAGON_FONT_STACK = ("-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', "
+                      "Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', "
+                      "'Segoe UI Symbol', 'Noto Color Emoji'")
+if uses_theme_typography(mfe_config):
+    font_family = 'var(--pgn-typography-font-family-base, %s)' % PARAGON_FONT_STACK
+    font_size = 'var(--pgn-typography-font-size-base, 1.125rem)'
+    line_height = 'var(--pgn-typography-line-height-base, 1.5556)'
+else:
+    font_family = PARAGON_FONT_STACK
+    font_size = '1.125rem'
+    line_height = '1.5556'
+%>
+
+## Provide a hook for themes to inject branding on top (kept from core).
+<%block name="navigation_top" />
+
+% if enabled:
+  % if theme_variant_url:
+  <link rel="stylesheet" type="text/css" href="${theme_variant_url}" />
+  % endif
+  <style>
+    /* Mirrors frontend/cobalt-header/CobaltHeader.scss plus the Paragon
+       component styles the MFE header renders (Nav.Link, Button, Dropdown,
+       Avatar), resolved to Paragon's default token values as fallbacks.
+       Everything is scoped to #header-cobalt and resets what the legacy theme
+       styles globally (header, nav, ul, a, img, button). */
+    #header-cobalt, #header-cobalt * { box-sizing: border-box; }
+    #header-cobalt {
+      background-color: var(--pgn-color-white, #FFFFFF);
+      border-bottom: 1px solid var(--pgn-color-light-400, #E9E6E4);
+      color: var(--pgn-color-gray-700, #454545);
+      font-family: ${font_family | n};
+      font-size: ${font_size};
+      line-height: ${line_height};
+      text-align: left;
+      margin: 0;
+      padding: 0;
+      box-shadow: none;
+      position: relative;
+      z-index: 1000;
+    }
+    #header-cobalt * { font-family: inherit; }
+    #header-cobalt ul, #header-cobalt li, #header-cobalt nav { margin: 0; padding: 0; border: 0; background: none; list-style: none; }
+    #header-cobalt img { border: 0; vertical-align: middle; }
+    #header-cobalt a { box-shadow: none; border: 0; background: none; }
+
+    #header-cobalt .chd-container { display: flex; align-items: center; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; min-height: 4rem; gap: 1.5rem; }
+    #header-cobalt .chd-logo-link { display: inline-flex; align-items: center; }
+    #header-cobalt .chd-logo { max-height: 2.25rem; width: auto; }
+
+    /* Menu links: main menu, Help and Sign in (chd-menu-link in CobaltHeader.scss).
+       Paragon Nav.Link box plus a hover/focus underline, the same 2px brand
+       line as the footer column titles. */
+    #header-cobalt .chd-main-nav { display: flex; flex-wrap: nowrap; gap: 0.5rem; }
+    #header-cobalt a.chd-nav-link, #header-cobalt .chd-help a {
+      display: block; position: relative;
+      padding: var(--pgn-spacing-nav-link-padding-y, 0.5rem) var(--pgn-spacing-nav-link-padding-x, 1rem);
+    }
+    #header-cobalt a.chd-nav-link::after, #header-cobalt .chd-help a::after {
+      content: ""; position: absolute; bottom: 0.25rem; height: 2px;
+      left: var(--pgn-spacing-nav-link-padding-x, 1rem); right: var(--pgn-spacing-nav-link-padding-x, 1rem);
+      background-color: var(--pgn-color-brand-base, #9D0054);
+      transform: scaleX(0); transition: transform 0.2s ease;
+    }
+    #header-cobalt a.chd-nav-link:hover::after, #header-cobalt a.chd-nav-link:focus::after,
+    #header-cobalt .chd-help a:hover::after, #header-cobalt .chd-help a:focus::after { transform: scaleX(1); }
+    #header-cobalt a.chd-nav-link, #header-cobalt .chd-help a {
+      color: var(--pgn-color-primary-700, #082644) !important;
+      font-weight: 500;
+      text-decoration: none !important;
+    }
+    #header-cobalt a.chd-nav-link:hover, #header-cobalt a.chd-nav-link:focus,
+    #header-cobalt .chd-help a:hover, #header-cobalt .chd-help a:focus { color: var(--pgn-color-brand-base, #9D0054) !important; }
+
+    #header-cobalt .chd-right { display: flex; align-items: center; margin-left: auto; }
+
+    /* Buttons (Paragon Button: outline-primary user toggle and register).
+       Sizes, radius and colors come from the Paragon --pgn-* button tokens
+       (varsify can change them for every button); the fallbacks are Paragon's
+       defaults. */
+    #header-cobalt .chd-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 400; text-align: center; vertical-align: middle; user-select: none;
+      border: 1px solid; cursor: pointer; text-decoration: none !important;
+      text-transform: none; letter-spacing: normal; text-shadow: none; box-shadow: none; background-image: none;
+      transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+      border-width: var(--pgn-size-btn-border-width, 1px);
+      padding: var(--pgn-spacing-btn-padding-y-base, 0.5625rem) var(--pgn-spacing-btn-padding-x-base, 1rem);
+      font-size: var(--pgn-typography-btn-font-size-base, 1.125rem);
+      line-height: var(--pgn-typography-btn-line-height-base, 1.3333);
+      border-radius: var(--pgn-size-btn-border-radius-base, 0.375rem);
+    }
+    #header-cobalt .chd-btn-outline-primary {
+      color: var(--pgn-color-btn-text-outline-primary, #0A3055);
+      background-color: var(--pgn-color-btn-bg-outline-primary, transparent);
+      border-color: var(--pgn-color-btn-border-outline-primary, #0A3055);
+    }
+    #header-cobalt .chd-btn-outline-primary:hover, #header-cobalt .chd-btn-outline-primary:focus,
+    #header-cobalt .chd-btn-outline-primary[aria-expanded="true"] {
+      color: var(--pgn-color-btn-hover-text-outline-primary, #082644);
+      background-color: var(--pgn-color-btn-hover-bg-outline-primary, #F0F3F5);
+      border-color: var(--pgn-color-btn-hover-border-outline-primary, #082644);
+    }
+
+    /* User dropdown (Paragon Dropdown + Avatar) */
+    #header-cobalt .chd-user-menu { position: relative; }
+    #header-cobalt .chd-user-toggle::after {
+      content: ""; display: inline-block; border-style: solid; border-width: 0.15rem 0.15rem 0 0;
+      height: 0.45rem; width: 0.45rem; margin-inline-start: 0.5em; position: relative; top: -0.05rem; transform: rotate(135deg);
+    }
+    #header-cobalt .chd-avatar {
+      display: inline-block; width: var(--pgn-size-avatar-sm, 2.25rem); height: var(--pgn-size-avatar-sm, 2.25rem); border-radius: var(--pgn-size-avatar-border-radius, 100%); overflow: hidden; object-fit: cover;
+      border: 1px solid var(--pgn-color-avatar-border, #F0EEED); margin-right: 0.5rem;
+    }
+    #header-cobalt .chd-user-menu-content {
+      position: absolute; top: 100%; right: 0; left: auto; z-index: 1000; display: none;
+      min-width: 18rem; padding: 0.5rem 0; margin: 0.125rem 0 0; text-align: left;
+      color: var(--pgn-color-dropdown-text, #454545);
+      background-color: var(--pgn-color-dropdown-bg, #FFFFFF); background-clip: padding-box;
+      border: 1px solid var(--pgn-color-dropdown-border, rgba(0, 0, 0, 0.15));
+      border-radius: 0.375rem; font-size: ${font_size};
+      box-shadow: var(--pgn-elevation-box-shadow-lg, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
+    }
+    #header-cobalt .chd-user-menu-content.show { display: block; }
+    #header-cobalt a.chd-dropdown-item {
+      display: block; width: 100%; padding: 0.25rem 1rem; clear: both; font-weight: 400; white-space: nowrap;
+      color: var(--pgn-color-dropdown-link-base, #212529); text-decoration: none; background-color: transparent;
+    }
+    #header-cobalt a.chd-dropdown-item:hover, #header-cobalt a.chd-dropdown-item:focus {
+      color: var(--pgn-color-dropdown-link-hover-base, #000000);
+      background-color: var(--pgn-color-dropdown-link-hover-bg, #F0EEED);
+    }
+
+    /* Course pages (CobaltLearningHeader): course lockup. */
+    #header-cobalt .chd-course-info { flex-grow: 1; display: flex; min-width: 0; line-height: 1; }
+    #header-cobalt .chd-course-info > div { min-width: 0; }
+    #header-cobalt .chd-course-info span { display: block; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #header-cobalt .chd-course-number { font-size: 87.5%; font-weight: 400; }
+    #header-cobalt .chd-course-title { font-weight: 700; }
+    #header-cobalt .chd-help { margin-right: 0.5rem; }
+
+    #header-cobalt .chd-auth-actions { display: flex; align-items: center; }
+    #header-cobalt .chd-auth-actions .chd-nav-link { margin-right: 0.5rem; }
+
+    @media (max-width: 767.98px) {
+      #header-cobalt .chd-main-nav { display: none; }
+      #header-cobalt .chd-container { gap: 0.75rem; }
+      #header-cobalt .chd-username { display: none; }
+    }
+  </style>
+
+  <header id="header-cobalt" class="cobalt-header">
+    % if settings.FEATURES.get('ENABLE_COOKIE_POLICY_BANNER', use_cookie_banner):
+      ${static.renderReact(
+          component="CookiePolicyBanner",
+          id="frontend-component-cookie-policy-banner",
+          props={}
+      )}
+    % endif
+    <div class="chd-container">
+      <a href="${logo_destination}" class="chd-logo-link" aria-label="${logo_alt}">
+        <img class="chd-logo" src="${logo_src}" alt="${logo_alt}"/>
+      </a>
+
+      % if course:
+      <div class="chd-course-info">
+        <div>
+          <span class="chd-course-number">${course_org} ${course_number}</span>
+          <span class="chd-course-title">${course_title}</span>
+        </div>
+      </div>
+      % elif main_links:
+      <nav aria-label="${_('Main menu')}">
+        <ul class="chd-main-nav">
+          % for link in main_links:
+          <li><a class="chd-nav-link" href="${link.get('url', '')}" target="${link.get('target') or '_self'}">${link.get('txt', '')}</a></li>
+          % endfor
+        </ul>
+      </nav>
+      % endif
+
+      <div class="chd-right">
+        % if logged_in and support_url:
+        <div class="chd-help"><a href="${support_url}">${_('Help')}</a></div>
+        % endif
+        % if logged_in:
+        <div class="chd-user-menu">
+          <button type="button" id="cobalt-header-user-menu"
+                  class="chd-btn chd-btn-outline-primary chd-user-toggle"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="cobalt-header-user-menu-content">
+            <img class="chd-avatar" src="${avatar_src}" alt="${username}"/>
+            <span class="chd-username">${username}</span>
+          </button>
+          <div id="cobalt-header-user-menu-content" class="chd-user-menu-content" aria-labelledby="cobalt-header-user-menu">
+            % for item in user_menu:
+            <a class="chd-dropdown-item" href="${item['url']}">${item['txt']}</a>
+            % endfor
+          </div>
+        </div>
+        % else:
+        <div class="chd-auth-actions">
+          <a class="chd-nav-link" href="${login_url}">${_('Sign in')}</a>
+          <a class="chd-btn chd-btn-outline-primary" href="${register_url}">${_('Register')}</a>
+        </div>
+        % endif
+      </div>
+    </div>
+  </header>
+
+  % if logged_in:
+  <script>
+    (function () {
+      var toggle = document.getElementById('cobalt-header-user-menu');
+      var menu = document.getElementById('cobalt-header-user-menu-content');
+      if (!toggle || !menu) { return; }
+      function setOpen(open) {
+        menu.classList.toggle('show', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      toggle.addEventListener('click', function (event) {
+        event.stopPropagation();
+        setOpen(!menu.classList.contains('show'));
+      });
+      document.addEventListener('click', function (event) {
+        if (!menu.contains(event.target)) { setOpen(false); }
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && menu.classList.contains('show')) {
+          setOpen(false);
+          toggle.focus();
+        }
+      });
+    }());
+  </script>
+  % endif
+
+  % if settings.FEATURES.get('ENABLE_COOKIE_CONSENT', False):
+    <%include file="../widgets/cookie-consent.html" />
+  % endif
+% else:
+## Delegate to the header this template replaced at build time. The theme
+## lookup resolves it like header/header.html would have been resolved
+## without this plugin: the active theme's own header, its parent's, or core's.
+<%include file="${static.get_template_path('header/header-original.html')}" args="online_help_token=online_help_token, use_cookie_banner=use_cookie_banner" />
+% endif

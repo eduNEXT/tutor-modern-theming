@@ -297,9 +297,10 @@ hooks.Filters.ENV_PATCHES.add_items(
 # user menu) instead of rebuilding it, and reads MFE_CONFIG for the Cobalt
 # extras (COBALT_HEADER_MAIN_MENU, COBALT_HEADER_USER_MENU_EXTRA_LINKS).
 #
-# Not covered here (no whole-header slot): the learning header (LearningHeader)
-# and Studio header (StudioHeader), plus the mobile header (header_mobile.v1).
-# Those are follow-ups; see docs/decisions/0005.
+# The learning MFE does not render that header: it wraps LearningHeader in its
+# own whole-header slot (header_learning.v1), covered below with
+# CobaltLearningHeader. Not covered: Studio header (StudioHeader) and the
+# mobile header (header_mobile.v1); see docs/decisions/0005.
 
 # MFEs that render frontend-component-header's standard Header (i.e. expose
 # org.openedx.frontend.layout.header_desktop.v1). catalog's CatalogHeader wraps
@@ -356,6 +357,49 @@ for mfe in COBALT_HEADER_MFES:
     # 3. Wiring: register the desktop header slot for this MFE.
     PLUGIN_SLOTS.add_item((mfe, HEADER_DESKTOP_SLOT_ID, HEADER_DESKTOP_SLOT_CONFIG))
 
+# Learning MFE: same Cobalt chrome, keeping what LearningHeader needs (course
+# lockup, Help link, showUserDropdown). The slot is defined by
+# frontend-app-learning (src/plugin-slots/HeaderSlot), which passes courseOrg,
+# courseNumber, courseTitle and showUserDropdown as plugin props.
+HEADER_LEARNING_MFE = "learning"
+HEADER_LEARNING_SLOT_ID = "org.openedx.frontend.layout.header_learning.v1"
+
+HEADER_LEARNING_SLOT_CONFIG = """
+{
+    op: PLUGIN_OPERATIONS.Hide,
+    widgetId: 'default_contents',
+},
+{
+    op: PLUGIN_OPERATIONS.Insert,
+    widget: {
+        id: 'cobalt_learning_header',
+        type: DIRECT_PLUGIN,
+        RenderWidget: CobaltLearningHeader,
+    },
+},
+"""
+
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            f"mfe-dockerfile-pre-npm-build-{HEADER_LEARNING_MFE}",
+            "ADD --keep-git-dir=true "
+            + MODERN_THEMING_REPO
+            + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-header\n"
+            + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/cobalt-header "
+            + "src/cobalt-header",
+        ),
+        (
+            f"mfe-env-config-runtime-definitions-{HEADER_LEARNING_MFE}",
+            "const CobaltLearningHeader = "
+            + "require('./src/cobalt-header').CobaltLearningHeader;",
+        ),
+    ]
+)
+PLUGIN_SLOTS.add_item(
+    (HEADER_LEARNING_MFE, HEADER_LEARNING_SLOT_ID, HEADER_LEARNING_SLOT_CONFIG)
+)
+
 # Enable the header by default. Tenants can set
 # MFE_CONFIG["ENABLE_COBALT_HEADER"] = False to fall back to the default
 # Open edX desktop header without rebuilding.
@@ -370,4 +414,36 @@ hooks.Filters.ENV_PATCHES.add_items(
             'MFE_CONFIG["ENABLE_COBALT_HEADER"] = True',
         ),
     ]
+)
+
+
+########################################
+# LEGACY HEADER (Django/Mako)
+########################################
+#
+# Same approach as the legacy footer: a Mako header (legacy/header/header.html)
+# that reads the SAME COBALT_HEADER_* MFE_CONFIG keys and renders the same
+# markup as the React header, so legacy Django pages match the MFEs.
+#
+# Delegation, not replacement: every header/header.html in the image (core and
+# every theme) is renamed to header/header-original.html in place, and ours
+# takes its name. When ENABLE_COBALT_HEADER is off, ours includes
+# header/header-original.html, resolved through the theme lookup exactly like
+# header/header.html would have been without this plugin.
+#
+# Its own temporary folder, so it does not depend on the order of the
+# "openedx-dockerfile" patches (the footer uses another one).
+hooks.Filters.ENV_PATCHES.add_item(
+    (
+        "openedx-dockerfile",
+        "ADD --keep-git-dir=true "
+        + MODERN_THEMING_REPO
+        + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-legacy-header\n"
+        + "RUN for f in /openedx/edx-platform/lms/templates/header/header.html "
+        + "$(find /openedx/themes -path '*/lms/templates/header/header.html' 2>/dev/null); do \\\n"
+        + "      d=$(dirname \"$f\"); \\\n"
+        + "      [ -e \"$d/header-original.html\" ] || mv \"$f\" \"$d/header-original.html\"; \\\n"
+        + "      cp /tmp/tutor-modern-theming-legacy-header/legacy/header/header.html \"$f\"; \\\n"
+        + "    done",
+    )
 )

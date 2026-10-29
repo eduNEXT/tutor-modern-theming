@@ -23,13 +23,13 @@
     width: auto;
   }
 
-  // Main navigation
-  .chd-main-nav {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-  }
-
-  .chd-nav-link {
+  // Menu links (main menu, Help and Sign in): Paragon Nav.Link box plus a hover/focus
+  // underline, the same 2px brand line as the footer column titles
+  // (.cf-nav-title in CobaltFooter.scss), drawn under the link text only.
+  @mixin chd-menu-link {
+    display: block;
+    position: relative;
+    padding: var(--pgn-spacing-nav-link-padding-y, 0.5rem) var(--pgn-spacing-nav-link-padding-x, 1rem);
     color: var(--pgn-color-primary-700) !important;
     font-weight: 500;
     text-decoration: none !important;
@@ -38,11 +38,60 @@
     &:focus {
       color: var(--pgn-color-brand-base) !important;
     }
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: var(--pgn-spacing-nav-link-padding-x, 1rem);
+      right: var(--pgn-spacing-nav-link-padding-x, 1rem);
+      bottom: 0.25rem;
+      height: 2px;
+      background-color: var(--pgn-color-brand-base);
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+    }
+
+    &:hover::after,
+    &:focus::after {
+      transform: scaleX(1);
+    }
   }
 
-  // User dropdown toggle
-  .chd-user-toggle {
-    border-radius: 2rem;
+  // Main navigation
+  .chd-main-nav {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  // Help link, before the user menu. Any element a plugin renders in the
+  // learning help slot gets the same look as long as it is a link.
+  .chd-help {
+    margin-right: 0.5rem;
+
+    a {
+      @include chd-menu-link;
+    }
+  }
+
+  .chd-nav-link {
+    @include chd-menu-link;
+  }
+
+  // Sign in, next to Register for anonymous users.
+  .chd-auth-actions .chd-nav-link {
+    margin-right: 0.5rem;
+  }
+
+  // Learning header: course lockup (in place of the main menu), same truncation as frontend-component-header's .course-title-lockup.
+  .chd-course-info {
+    min-width: 0;
+    line-height: 1;
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .chd-user-menu-content {
