@@ -15,6 +15,8 @@ import datetime
 
 from django.conf import settings
 from django.utils.translation import gettext as _
+
+from lms.djangoapps.branding import api as branding_api
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
 # Same icons the MFE footer renders (@openedx/paragon/icons).
@@ -78,7 +80,13 @@ enabled = bool(mfe_config.get('ENABLE_COBALT_FOOTER', False))
 lms_base_url = mfe_config.get('LMS_BASE_URL') or getattr(settings, 'LMS_ROOT_URL', '')
 
 # Every value and fallback below mirrors frontend/cobalt-footer/CobaltFooter.jsx.
-logo_src = mfe_config.get('COBALT_FOOTER_LOGO_SRC') or mfe_config.get('LOGO_TRADEMARK_URL', '')
+# The MFEs fall back to their build-time LOGO_TRADEMARK_URL (the platform logo)
+# when MFE_CONFIG has none; the closest legacy equivalent is the platform logo.
+logo_src = (
+    mfe_config.get('COBALT_FOOTER_LOGO_SRC')
+    or mfe_config.get('LOGO_TRADEMARK_URL')
+    or branding_api.get_logo_url(is_secure)
+)
 logo_url = mfe_config.get('COBALT_FOOTER_LOGO_URL') or lms_base_url
 logo_alt = mfe_config.get('COBALT_FOOTER_LOGO_ALT') or _('Platform logo')
 logo_target = mfe_config.get('COBALT_FOOTER_LOGO_TARGET') or '_self'
@@ -87,41 +95,47 @@ description = mfe_config.get('COBALT_FOOTER_DESCRIPTION') or _(
     'Empowering learners everywhere with world-class online education.'
 )
 
-nav_columns = mfe_config.get('COBALT_FOOTER_NAV_COLUMNS') or [
-    {
-        'title': _('About'),
-        'links': [
-            {'txt': _('About Us'), 'url': lms_base_url + '/about'},
-            {'txt': _('Blog'), 'url': lms_base_url + '/blog'},
-            {'txt': _('Careers'), 'url': lms_base_url + '/careers'},
-            {'txt': _('News'), 'url': lms_base_url + '/news'},
-        ],
-    },
-    {
-        'title': _('Legal'),
-        'links': [
-            {'txt': _('Terms of Service'), 'url': lms_base_url + '/tos'},
-            {'txt': _('Privacy Policy'), 'url': lms_base_url + '/privacy'},
-            {'txt': _('Accessibility'), 'url': lms_base_url + '/accessibility'},
-        ],
-    },
-    {
-        'title': _('Connect'),
-        'links': [
-            {'txt': _('Contact Us'), 'url': lms_base_url + '/contact'},
-            {'txt': _('Help & Support'), 'url': lms_base_url + '/support'},
-        ],
-    },
-]
+# Lists fall back only when the key is missing, like the React footer
+# (`cfg.X || DEFAULT`): an empty list is truthy in JS and hides the section.
+nav_columns = mfe_config.get('COBALT_FOOTER_NAV_COLUMNS')
+if nav_columns is None:
+    nav_columns = [
+        {
+            'title': _('About'),
+            'links': [
+                {'txt': _('About Us'), 'url': lms_base_url + '/about'},
+                {'txt': _('Blog'), 'url': lms_base_url + '/blog'},
+                {'txt': _('Careers'), 'url': lms_base_url + '/careers'},
+                {'txt': _('News'), 'url': lms_base_url + '/news'},
+            ],
+        },
+        {
+            'title': _('Legal'),
+            'links': [
+                {'txt': _('Terms of Service'), 'url': lms_base_url + '/tos'},
+                {'txt': _('Privacy Policy'), 'url': lms_base_url + '/privacy'},
+                {'txt': _('Accessibility'), 'url': lms_base_url + '/accessibility'},
+            ],
+        },
+        {
+            'title': _('Connect'),
+            'links': [
+                {'txt': _('Contact Us'), 'url': lms_base_url + '/contact'},
+                {'txt': _('Help & Support'), 'url': lms_base_url + '/support'},
+            ],
+        },
+    ]
 
-social_links = mfe_config.get('COBALT_FOOTER_SOCIAL_LINKS') or [
-    {'key': 'facebook', 'url': 'https://www.facebook.com/EdXOnline', 'label': 'Facebook'},
-    {'key': 'twitter', 'url': 'https://twitter.com/edXOnline', 'label': 'X (Twitter)'},
-    {'key': 'linkedin', 'url': 'https://www.linkedin.com/school/edx', 'label': 'LinkedIn'},
-    {'key': 'instagram', 'url': 'https://www.instagram.com/edxonline', 'label': 'Instagram'},
-    {'key': 'youtube', 'url': 'https://www.youtube.com/edx', 'label': 'YouTube'},
-    {'key': 'github', 'url': 'https://github.com/openedx', 'label': 'GitHub'},
-]
+social_links = mfe_config.get('COBALT_FOOTER_SOCIAL_LINKS')
+if social_links is None:
+    social_links = [
+        {'key': 'facebook', 'url': 'https://www.facebook.com/EdXOnline', 'label': 'Facebook'},
+        {'key': 'twitter', 'url': 'https://twitter.com/edXOnline', 'label': 'X (Twitter)'},
+        {'key': 'linkedin', 'url': 'https://www.linkedin.com/school/edx', 'label': 'LinkedIn'},
+        {'key': 'instagram', 'url': 'https://www.instagram.com/edxonline', 'label': 'Instagram'},
+        {'key': 'youtube', 'url': 'https://www.youtube.com/edx', 'label': 'YouTube'},
+        {'key': 'github', 'url': 'https://github.com/openedx', 'label': 'GitHub'},
+    ]
 
 extra_links = mfe_config.get('COBALT_FOOTER_EXTRA_LINKS') or []
 

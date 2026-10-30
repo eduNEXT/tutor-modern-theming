@@ -106,7 +106,10 @@ Configuration
 The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. Set the keys
 through Tutor settings or per tenant (eox-tenant). The Cobalt footer only
 renders when ``ENABLE_COBALT_FOOTER`` is ``true``; every other key is optional,
-and when it is missing or empty the footer uses the fallback below.
+and when it is missing or empty the footer uses the fallback below. The list
+keys (``COBALT_FOOTER_NAV_COLUMNS``, ``COBALT_FOOTER_SOCIAL_LINKS``) fall back
+only when missing: an empty list (``[]``) shows no columns or no social icons,
+in both the MFE and the legacy footer.
 
 .. list-table::
    :header-rows: 1
@@ -275,6 +278,8 @@ Every other ``COBALT_FOOTER_*`` key has the same fallback as in the MFE footer (
        footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
    * - ``LMS_BASE_URL`` (used by the default logo URL and navigation links)
      - Django's ``LMS_ROOT_URL``.
+   * - ``LOGO_TRADEMARK_URL`` (default footer logo)
+     - The platform logo, like the MFEs' build-time ``LOGO_TRADEMARK_URL``.
    * - ``PARAGON_THEME_URLS``
      - No theme tokens are loaded; colors fall back to Paragon's defaults.
    * - ``COBALT_FOOTER_BACKGROUND_COLOR`` (legacy only)

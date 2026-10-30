@@ -94,9 +94,9 @@ if course:
             course_title = ccx.display_name
 
 # Help link before the user menu (CobaltHeaderBase.jsx), when SUPPORT_URL is set.
-support_url = mfe_config.get('SUPPORT_URL') or configuration_helpers.get_value(
-    'SUPPORT_SITE_LINK', getattr(settings, 'SUPPORT_SITE_LINK', ''),
-)
+# Only MFE_CONFIG, like the MFE headers: no SUPPORT_SITE_LINK fallback, which
+# the MFEs cannot see.
+support_url = mfe_config.get('SUPPORT_URL')
 
 logged_in = user.is_authenticated
 if logged_in:
@@ -275,9 +275,14 @@ else:
     #header-cobalt .chd-auth-actions { display: flex; align-items: center; }
     #header-cobalt .chd-auth-actions .chd-nav-link { margin-right: 0.5rem; }
 
-    @media (max-width: 767.98px) {
+    /* Same breakpoints as the MFE header: CobaltHeader.scss hides the main
+       menu at 768px and below; the username uses Bootstrap's d-md-inline
+       (hidden below 768px). */
+    @media (max-width: 768px) {
       #header-cobalt .chd-main-nav { display: none; }
       #header-cobalt .chd-container { gap: 0.75rem; }
+    }
+    @media (max-width: 767.98px) {
       #header-cobalt .chd-username { display: none; }
     }
   </style>
