@@ -1,73 +1,26 @@
-import React, { useContext } from 'react';
-import { getConfig } from '@edx/frontend-platform';
-import { useIntl } from '@edx/frontend-platform/i18n';
-import { AppContext } from '@edx/frontend-platform/react';
-import { sendTrackEvent } from '@edx/frontend-platform/analytics';
+import React from "react";
+import { getConfig } from "@edx/frontend-platform";
+import { useIntl } from "@edx/frontend-platform/i18n";
+import { sendTrackEvent } from "@edx/frontend-platform/analytics";
 // DesktopHeader is the slot's default content. It is not re-exported by the
 // package index, so it is imported from dist (present in 6.x and 8.x).
 // Rendering it directly (not DesktopHeaderSlot) does not recurse into the slot.
-import DefaultDesktopHeader from '@edx/frontend-component-header/dist/desktop-header/DesktopHeader';
-import {
-  Nav,
-  Dropdown,
-  Avatar,
-  Button,
-  Hyperlink,
-} from '@openedx/paragon';
+import DefaultDesktopHeader from "@edx/frontend-component-header/dist/desktop-header/DesktopHeader";
+import { Nav } from "@openedx/paragon";
 
-import messages from './messages';
-import './CobaltHeader.scss';
+import CobaltHeaderBase from "./CobaltHeaderBase";
+import messages from "./messages";
 
-// Build the authenticated user dropdown items: the standard Open edX items
-// (Dashboard / Profile / Account / Sign Out) plus any extras configured via
-// MFE_CONFIG.COBALT_HEADER_USER_MENU_EXTRA_LINKS. Sign Out always stays last.
-const buildUserMenu = (cfg, username, formatMessage) => {
-  const lms = cfg.LMS_BASE_URL || '';
-  const profileBase = cfg.ACCOUNT_PROFILE_URL || cfg.PROFILE_MICROFRONTEND_URL || lms;
-  const accountBase = cfg.ACCOUNT_SETTINGS_URL || `${lms}/account/settings`;
-
-  const items = [
-    { txt: formatMessage(messages.dashboard), url: `${lms}/dashboard` },
-    { txt: formatMessage(messages.profile), url: `${profileBase}/u/${username}` },
-    { txt: formatMessage(messages.account), url: accountBase },
-  ];
-
-  (cfg.COBALT_HEADER_USER_MENU_EXTRA_LINKS || []).forEach((link) => {
-    if (link && link.url && link.txt) {
-      items.push({ txt: link.txt, url: link.url });
-    }
-  });
-
-  items.push({
-    txt: formatMessage(messages.signOut),
-    url: cfg.LOGOUT_URL || `${lms}/logout`,
-  });
-  return items;
-};
-
+// Cobalt header for org.openedx.frontend.layout.header_desktop.v1: the shared
+// chrome with the main menu in the middle.
 const CobaltDesktopHeader = (props) => {
   const { formatMessage } = useIntl();
-  const { authenticatedUser } = useContext(AppContext);
   const cfg = getConfig();
 
-  const loggedIn = !!authenticatedUser;
-  const username = authenticatedUser?.username;
-  const avatarSrc = authenticatedUser?.avatar || props.avatar;
-
-  const logoSrc = cfg.LOGO_URL || props.logo;
-  const logoAlt = cfg.SITE_NAME || props.logoAltText || 'Home';
-  const logoDestination = props.logoDestination || cfg.LMS_BASE_URL || '/';
-
-  // Main menu: MFE_CONFIG.COBALT_HEADER_MAIN_MENU wins; otherwise reuse the
-  // menu the host MFE already passed to the header slot (props.mainMenu).
-  const mainLinks = cfg.COBALT_HEADER_MAIN_MENU || props.mainMenu || [];
-
-  const handleLinkClick = (event) => {
-    sendTrackEvent('edx.bi.header.link', {
-      category: 'outbound_link',
-      label: event.currentTarget.getAttribute('href'),
-    });
-  };
+  // Main menu: only MFE_CONFIG.COBALT_HEADER_MAIN_MENU, so the legacy (Mako)
+  // header can render exactly the same links. The menu the host MFE passes to
+  // the slot (props.mainMenu) is MFE-specific and uses another item shape.
+  const mainLinks = cfg.COBALT_HEADER_MAIN_MENU || [];
 
   // Runtime kill-switch: when ENABLE_COBALT_HEADER is falsy, fall back to
   // the default Open edX desktop header with the props the slot received.
@@ -76,87 +29,40 @@ const CobaltDesktopHeader = (props) => {
     return <DefaultDesktopHeader {...props} />;
   }
 
-  const renderMainMenu = () => (
-    <Nav className="chd-main-nav" aria-label={formatMessage(messages.mainMenu)}>
-      {mainLinks.map((link) => (
-        <Nav.Item key={link.url}>
-          <Nav.Link
-            href={link.url}
-            target={link.target || '_self'}
-            onClick={handleLinkClick}
-            className="chd-nav-link"
-          >
-            {link.txt}
-          </Nav.Link>
-        </Nav.Item>
-      ))}
-    </Nav>
-  );
-
-  const renderUserMenu = () => {
-    const items = buildUserMenu(cfg, username, formatMessage);
-    return (
-      <Dropdown className="chd-user-menu">
-        <Dropdown.Toggle
-          id="cobalt-header-user-menu"
-          variant="outline-primary"
-          className="chd-user-toggle d-inline-flex align-items-center"
-        >
-          <Avatar size="sm" src={avatarSrc} alt={username} className="mr-2" />
-          <span className="d-none d-md-inline">{username}</span>
-        </Dropdown.Toggle>
-        <Dropdown.Menu alignRight className="chd-user-menu-content">
-          {items.map((item) => (
-            <Dropdown.Item key={item.url} href={item.url} onClick={handleLinkClick}>
-              {item.txt}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
-    );
-  };
-
-  const renderLoggedOut = () => {
-    const loginUrl = cfg.LOGIN_URL || `${cfg.LMS_BASE_URL}/login`;
-    const registerUrl = `${cfg.LMS_BASE_URL}/register`;
-    return (
-      <div className="chd-auth-actions d-flex align-items-center">
-        <Hyperlink
-          destination={loginUrl}
-          onClick={handleLinkClick}
-          className="chd-nav-link mr-3"
-        >
-          {formatMessage(messages.signIn)}
-        </Hyperlink>
-        <Button as="a" href={registerUrl} variant="primary" size="sm" onClick={handleLinkClick}>
-          {formatMessage(messages.register)}
-        </Button>
-      </div>
-    );
+  const handleLinkClick = (event) => {
+    sendTrackEvent("edx.bi.header.link", {
+      category: "outbound_link",
+      label: event.currentTarget.getAttribute("href"),
+    });
   };
 
   return (
-    <header className="cobalt-header">
-      <a className="sr-only sr-only-focusable" href="#main">
-        {formatMessage(messages.skipNav)}
-      </a>
-      <div className="chd-container d-flex align-items-center">
-        <a
-          href={logoDestination}
-          className="chd-logo-link"
-          aria-label={logoAlt}
-          onClick={handleLinkClick}
+    <CobaltHeaderBase
+      logo={props.logo}
+      logoAltText={props.logoAltText}
+      logoDestination={props.logoDestination}
+      avatar={props.avatar}
+    >
+      {mainLinks.length > 0 && (
+        <Nav
+          className="chd-main-nav"
+          aria-label={formatMessage(messages.mainMenu)}
         >
-          <img className="chd-logo" src={logoSrc} alt={logoAlt} />
-        </a>
-
-        {renderMainMenu()}
-
-        <div className="chd-right ml-auto d-flex align-items-center">
-          {loggedIn ? renderUserMenu() : renderLoggedOut()}
-        </div>
-      </div>
-    </header>
+          {mainLinks.map((link) => (
+            <Nav.Item key={link.url}>
+              <Nav.Link
+                href={link.url}
+                target={link.target || "_self"}
+                onClick={handleLinkClick}
+                className="chd-nav-link"
+              >
+                {link.txt}
+              </Nav.Link>
+            </Nav.Item>
+          ))}
+        </Nav>
+      )}
+    </CobaltHeaderBase>
   );
 };
 

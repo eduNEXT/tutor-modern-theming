@@ -1,5 +1,6 @@
-import CobaltDesktopHeader from './CobaltDesktopHeader';
+import CobaltDesktopHeader from "./CobaltDesktopHeader";
+import CobaltLearningHeader from "./CobaltLearningHeader";
 
-// CobaltMobileHeader / learning / studio headers are added in follow-ups.
-export { CobaltDesktopHeader };
+// CobaltMobileHeader / studio headers are added in follow-ups.
+export { CobaltDesktopHeader, CobaltLearningHeader };
 export default CobaltDesktopHeader;

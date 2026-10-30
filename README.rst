@@ -20,7 +20,8 @@ belongs to the theme uses the ``COBALT`` namespace:
 - ``MFE_CONFIG`` keys: ``ENABLE_COBALT_*`` flags and ``COBALT_FOOTER_*``,
   ``COBALT_HEADER_*`` and ``COBALT_HOME_BANNER_*`` content keys.
 - Components: ``frontend/cobalt-footer/`` (``CobaltFooter``),
-  ``frontend/cobalt-header/`` (``CobaltDesktopHeader``) and
+  ``frontend/cobalt-header/`` (``CobaltDesktopHeader``,
+  ``CobaltLearningHeader``) and
   ``frontend/cobalt-home-banner/`` (``CobaltHomeBanner``).
 - CSS classes, i18n message ids (``cobalt.*``) and plugin slot widget ids
   (``cobalt_*``).
@@ -316,17 +317,25 @@ The search field and the promo video keep the catalog behavior: the search field
 shows only when ``ENABLE_COURSE_DISCOVERY`` is ``true``, and the promo video uses
 ``HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID``.
 
-MFE Header (standard desktop)
------------------------------
+MFE Header
+----------
 
-The plugin ships a Cobalt desktop header (``frontend/cobalt-header/``) and
-injects it into ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default
-+ Insert) for the MFEs that use ``frontend-component-header``'s standard header.
-Only that header exposes a whole-header slot; the ``learning`` and ``authoring``
-headers, and the mobile header, are follow-ups (see ``docs/decisions/0005``).
+The plugin ships a Cobalt header (``frontend/cobalt-header/``) in two variants
+that share the same chrome (``CobaltHeaderBase``: logo, main menu, Help link,
+user menu, Sign in / Register):
 
-Styled MFEs: ``account``, ``catalog``, ``communications``, ``discussions``,
-``gradebook``, ``learner-dashboard``, ``ora-grading``, ``profile``.
+- ``CobaltDesktopHeader``, injected into
+  ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default + Insert) for
+  the MFEs that use ``frontend-component-header``'s standard header:
+  ``account``, ``catalog``, ``communications``, ``discussions``, ``gradebook``,
+  ``learner-dashboard``, ``ora-grading``, ``profile``.
+- ``CobaltLearningHeader``, injected into
+  ``org.openedx.frontend.layout.header_learning.v1`` in ``learning``. It keeps
+  what ``LearningHeader`` needs: the course lockup (org, number and title) in
+  place of the main menu, and ``showUserDropdown``.
+
+Not covered yet (see `Roadmap`_): the Studio header (``authoring``) and the
+mobile header (``header_mobile.v1``).
 
 The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it and keeps the base logged-in / logged-out
@@ -347,8 +356,8 @@ The Cobalt header only renders when ``ENABLE_COBALT_HEADER`` is ``true``.
      - The default Open edX desktop header is shown instead of the Cobalt
        header.
    * - ``COBALT_HEADER_MAIN_MENU``
-     - The main menu that the host MFE passes to the header; if it passes
-       none, no main menu.
+     - No main menu. The menu the host MFE passes to the header is ignored,
+       so MFE and legacy pages render the same links.
    * - ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``
      - User menu with only Dashboard, Profile, Account and Sign Out.
    * - ``LOGO_URL``
@@ -386,8 +395,26 @@ tenant configuration):
   are added to the user dropdown after Dashboard, Profile and Account, and
   before "Sign Out"; they open in the same tab.
 
+- ``SUPPORT_URL``: the Help link, before the user menu. Not shown if not set.
+
 Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
 same as the footer.
+
+Legacy (Django/Mako) header
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same approach as the `Legacy (Django/Mako) footer`_: ``legacy/header/header.html``
+reads the same ``COBALT_HEADER_*`` keys and renders the same markup and tokens
+as the React header, so legacy Django pages match the MFEs. On course pages it
+shows the course lockup, like ``CobaltLearningHeader``.
+
+At openedx image build time every ``lms/templates/header/header.html`` (core and
+every theme under ``/openedx/themes``) is renamed to ``header-original.html``
+in place and the Cobalt header takes its name. When ``ENABLE_COBALT_HEADER`` is
+off, it includes ``header/header-original.html``, resolved by the theme lookup.
+The same warning applies: themes mounted at runtime hide the build-time change,
+and structure changes must be kept in sync across ``frontend/cobalt-header/``
+and ``legacy/header/header.html``.
 
 Upgrading from the eduNEXT-named keys
 -------------------------------------
@@ -423,8 +450,9 @@ keeps its name.
 Roadmap
 -------
 
-- Mobile header (``header_mobile.v1``), learning header and Studio header.
-- Legacy (Mako) header sharing the same ``COBALT_HEADER_*`` config.
+- Studio header (``authoring``, ``StudioHeader``) for Ulmo and Verawood.
+- ``instructor-dashboard``, built on frontend-base.
+- Mobile header (``header_mobile.v1``).
 
 Contributing
 ------------
