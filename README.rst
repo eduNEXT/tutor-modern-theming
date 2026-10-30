@@ -106,7 +106,10 @@ Configuration
 The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. Set the keys
 through Tutor settings or per tenant (eox-tenant). The Cobalt footer only
 renders when ``ENABLE_COBALT_FOOTER`` is ``true``; every other key is optional,
-and when it is missing or empty the footer uses the fallback below.
+and when it is missing or empty the footer uses the fallback below. The list
+keys (``COBALT_FOOTER_NAV_COLUMNS``, ``COBALT_FOOTER_SOCIAL_LINKS``) fall back
+only when missing: an empty list (``[]``) shows no columns or no social icons,
+in both the MFE and the legacy footer.
 
 .. list-table::
    :header-rows: 1
