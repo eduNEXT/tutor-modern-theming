@@ -357,7 +357,8 @@ The Cobalt header only renders when ``ENABLE_COBALT_HEADER`` is ``true``.
        header.
    * - ``COBALT_HEADER_MAIN_MENU``
      - No main menu. The menu the host MFE passes to the header is ignored,
-       so MFE and legacy pages render the same links.
+       so MFE and legacy pages render the same links (see `Keeping the MFE
+       and legacy headers consistent`_).
    * - ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``
      - User menu with only Dashboard, Profile, Account and Sign Out.
    * - ``LOGO_URL``
@@ -396,6 +397,32 @@ tenant configuration):
   before "Sign Out"; they open in the same tab.
 
 - ``SUPPORT_URL``: the Help link, before the user menu. Not shown if not set.
+
+Keeping the MFE and legacy headers consistent
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MFE pages and legacy Django pages only show the same header when the Cobalt
+header is on and configured in one place. To get the same links everywhere:
+
+1. Set ``ENABLE_COBALT_HEADER: true``. When it is off, each side renders its
+   default Open edX header: every MFE shows the menu it builds itself (for
+   example ``learner-dashboard`` and ``catalog`` show different links) and the
+   legacy pages show the original ``header.html``. Those menus do not match;
+   that is the upstream behavior, not a Cobalt bug.
+2. Set ``COBALT_HEADER_MAIN_MENU``. It is the only source of the main menu:
+   the menu the host MFE passes to the header is ignored on purpose, because
+   it is MFE-specific and the legacy pages cannot see it. With the Cobalt
+   header on and this key unset, no page shows a main menu.
+3. Put both keys (and ``COBALT_HEADER_USER_MENU_EXTRA_LINKS``,
+   ``SUPPORT_URL``) in ``MFE_CONFIG``: the tenant site configuration
+   (eox-tenant) or, as the fallback, the ``MFE_CONFIG`` Django setting. The
+   legacy header resolves it the same way as the MFE config API
+   (``/api/mfe_config/v1``) that feeds the MFEs. A value set only in an MFE's
+   build-time environment is not seen by the legacy pages.
+
+Expected differences: the ``learning`` MFE and legacy course pages show the
+course lockup instead of the main menu, and MFEs outside the list above
+(``authoring``, the mobile header) keep the default Open edX header.
 
 Colors come from Paragon design tokens (``--pgn-color-*``), varsify per tenant,
 same as the footer.
