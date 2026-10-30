@@ -278,6 +278,8 @@ Every other ``COBALT_FOOTER_*`` key has the same fallback as in the MFE footer (
        footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
    * - ``LMS_BASE_URL`` (used by the default logo URL and navigation links)
      - Django's ``LMS_ROOT_URL``.
+   * - ``LOGO_TRADEMARK_URL`` (default footer logo)
+     - The platform logo, like the MFEs' build-time ``LOGO_TRADEMARK_URL``.
    * - ``PARAGON_THEME_URLS``
      - No theme tokens are loaded; colors fall back to Paragon's defaults.
    * - ``COBALT_FOOTER_BACKGROUND_COLOR`` (legacy only)
