@@ -330,7 +330,7 @@ that share the same chrome (``CobaltHeaderBase``: logo, main menu, Help link,
 user menu, Sign in / Register):
 
 - ``CobaltDesktopHeader``, injected into
-  ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default + Insert) for
+  ``org.openedx.frontend.layout.header_desktop.v1`` (Wrap of the default) for
   the MFEs that use ``frontend-component-header``'s standard header:
   ``account``, ``catalog``, ``communications``, ``discussions``, ``gradebook``,
   ``learner-dashboard``, ``ora-grading``, ``profile``.

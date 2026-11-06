@@ -319,18 +319,16 @@ COBALT_HEADER_MFES = [
 
 HEADER_DESKTOP_SLOT_ID = "org.openedx.frontend.layout.header_desktop.v1"
 
+# Wrap, not Hide + Insert: the host MFE passes the header props (logo, menus,
+# user) only to the slot's default content, so a wrapper gets that element
+# with its props. CobaltDesktopHeader renders it as is when
+# ENABLE_COBALT_HEADER is off; an inserted widget would get no props and the
+# Open edX header would render empty.
 HEADER_DESKTOP_SLOT_CONFIG = """
 {
-    op: PLUGIN_OPERATIONS.Hide,
+    op: PLUGIN_OPERATIONS.Wrap,
     widgetId: 'default_contents',
-},
-{
-    op: PLUGIN_OPERATIONS.Insert,
-    widget: {
-        id: 'cobalt_desktop_header',
-        type: DIRECT_PLUGIN,
-        RenderWidget: CobaltDesktopHeader,
-    },
+    wrapper: CobaltDesktopHeader,
 },
 """
 
