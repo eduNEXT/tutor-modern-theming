@@ -4,6 +4,7 @@ import { Dropdown, Avatar, Button, Hyperlink } from "@openedx/paragon";
 
 import {
   HEADER_IN_SHELL,
+  HeaderExtensions,
   getCobaltConfig,
   getLoginRedirectUrl,
   sendTrackEvent,
@@ -186,8 +187,12 @@ const CobaltHeaderBase = ({
 
         {children}
 
+        {/* Widgets other apps add to the header (frontend-base site only). */}
+        <HeaderExtensions side="left" />
+
         {showUserArea && (
           <div className="chd-right ml-auto d-flex align-items-center">
+            <HeaderExtensions side="right" />
             {loggedIn && actions}
             {loggedIn && renderHelp()}
             {loggedIn ? renderUserMenu() : renderLoggedOut()}

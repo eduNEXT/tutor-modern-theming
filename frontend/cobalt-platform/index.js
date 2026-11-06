@@ -17,6 +17,9 @@ export const getCobaltConfig = () => getConfig();
 // <header> and skip link.
 export const HEADER_IN_SHELL = false;
 
+// The MFE header slots have no widgets from other apps to keep.
+export const HeaderExtensions = () => null;
+
 export const useAuthenticatedUser = () =>
   useContext(AppContext).authenticatedUser;
 

@@ -518,6 +518,11 @@ Behavior:
   footer get none, Cobalt included.
 - **Landmarks**: the shell already wraps the header in ``<header><nav>`` with a
   skip link, so on the site the Cobalt header renders a ``div`` and no skip link.
+- **Widgets from other apps**: replacing the desktop layout also replaces the
+  ``header.desktopLeft.v1`` and ``header.desktopRight.v1`` slots, where other
+  apps add widgets (e.g. the bell of the notifications app). The Cobalt header
+  renders both slots without the shell's own widgets, so those widgets still
+  show, in the same order, next to the Cobalt menu and before Help.
 
 Site configuration
 ^^^^^^^^^^^^^^^^^^
