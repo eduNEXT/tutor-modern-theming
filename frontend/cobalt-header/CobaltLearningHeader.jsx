@@ -10,6 +10,7 @@ import CourseInfoSlot from "@edx/frontend-component-header/dist/plugin-slots/Cou
 import LearningHelpSlot from "@edx/frontend-component-header/dist/plugin-slots/LearningHelpSlot";
 
 import CobaltHeaderBase from "./CobaltHeaderBase";
+import HeaderNotificationsSlot from "./HeaderNotifications";
 
 // Cobalt header for the learning MFE (org.openedx.frontend.layout.header_learning.v1).
 // Same chrome as CobaltDesktopHeader; what the learning header needs stays:
@@ -31,6 +32,7 @@ const CobaltLearningHeader = (props) => {
       logoDestination={`${cfg.LMS_BASE_URL}/dashboard`}
       showUserArea={showUserDropdown}
       help={<LearningHelpSlot />}
+      actions={HeaderNotificationsSlot && <HeaderNotificationsSlot />}
     >
       <div className="chd-course-info flex-grow-1 d-flex">
         <CourseInfoSlot

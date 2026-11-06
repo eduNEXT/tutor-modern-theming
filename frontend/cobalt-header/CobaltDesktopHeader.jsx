@@ -5,6 +5,7 @@ import { sendTrackEvent } from "@edx/frontend-platform/analytics";
 import { Nav } from "@openedx/paragon";
 
 import CobaltHeaderBase from "./CobaltHeaderBase";
+import HeaderNotificationsSlot from "./HeaderNotifications";
 import messages from "./messages";
 
 // Cobalt header for org.openedx.frontend.layout.header_desktop.v1: the shared
@@ -41,6 +42,7 @@ const CobaltDesktopHeader = ({ component }) => {
       logoAltText={props.logoAltText}
       logoDestination={props.logoDestination}
       avatar={props.avatar}
+      actions={HeaderNotificationsSlot && <HeaderNotificationsSlot />}
     >
       {mainLinks.length > 0 && (
         <Nav

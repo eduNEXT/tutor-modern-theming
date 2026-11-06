@@ -346,6 +346,14 @@ The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it and keeps the base logged-in / logged-out
 buttons.
 
+Both variants show the notifications bell
+(``org.openedx.frontend.layout.header_notifications_tray.v1``) before Help, as
+the Open edX header does, in the MFEs whose ``frontend-component-header`` has
+it (8.2 and later: most Verawood MFEs). With an older header (all of Ulmo;
+``catalog``, ``communications`` and ``gradebook`` in Verawood) there is no
+bell, and the MFE build prints a ``Module not found`` warning for that optional
+import.
+
 Header configuration and fallbacks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
