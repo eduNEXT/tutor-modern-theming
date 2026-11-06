@@ -330,7 +330,7 @@ that share the same chrome (``CobaltHeaderBase``: logo, main menu, Help link,
 user menu, Sign in / Register):
 
 - ``CobaltDesktopHeader``, injected into
-  ``org.openedx.frontend.layout.header_desktop.v1`` (Hide default + Insert) for
+  ``org.openedx.frontend.layout.header_desktop.v1`` (Wrap of the default) for
   the MFEs that use ``frontend-component-header``'s standard header:
   ``account``, ``catalog``, ``communications``, ``discussions``, ``gradebook``,
   ``learner-dashboard``, ``ora-grading``, ``profile``.
@@ -345,6 +345,14 @@ mobile header (``header_mobile.v1``).
 The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it and keeps the base logged-in / logged-out
 buttons.
+
+Both variants show the notifications bell
+(``org.openedx.frontend.layout.header_notifications_tray.v1``) before Help, as
+the Open edX header does, in the MFEs whose ``frontend-component-header`` has
+it (8.2 and later: most Verawood MFEs). With an older header (all of Ulmo;
+``catalog``, ``communications`` and ``gradebook`` in Verawood) there is no
+bell, and the MFE build prints a ``Module not found`` warning for that optional
+import.
 
 Header configuration and fallbacks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

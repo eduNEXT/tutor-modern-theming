@@ -63,6 +63,7 @@ const CobaltHeaderBase = ({
   showUserArea,
   children,
   help,
+  actions,
 }) => {
   const { formatMessage } = useIntl();
   const { authenticatedUser } = useContext(AppContext);
@@ -174,6 +175,7 @@ const CobaltHeaderBase = ({
 
         {showUserArea && (
           <div className="chd-right ml-auto d-flex align-items-center">
+            {loggedIn && actions}
             {loggedIn && renderHelp()}
             {loggedIn ? renderUserMenu() : renderLoggedOut()}
           </div>
@@ -192,6 +194,9 @@ CobaltHeaderBase.propTypes = {
   showUserArea: PropTypes.bool,
   children: PropTypes.node,
   help: PropTypes.node,
+  // Rendered before Help, like the Open edX header actions (e.g. the
+  // notifications bell).
+  actions: PropTypes.node,
 };
 
 CobaltHeaderBase.defaultProps = {
@@ -203,6 +208,7 @@ CobaltHeaderBase.defaultProps = {
   showUserArea: true,
   children: null,
   help: null,
+  actions: null,
 };
 
 export default CobaltHeaderBase;

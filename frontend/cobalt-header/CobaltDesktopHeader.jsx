@@ -2,18 +2,18 @@ import React from "react";
 import { getConfig } from "@edx/frontend-platform";
 import { useIntl } from "@edx/frontend-platform/i18n";
 import { sendTrackEvent } from "@edx/frontend-platform/analytics";
-// DesktopHeader is the slot's default content. It is not re-exported by the
-// package index, so it is imported from dist (present in 6.x and 8.x).
-// Rendering it directly (not DesktopHeaderSlot) does not recurse into the slot.
-import DefaultDesktopHeader from "@edx/frontend-component-header/dist/desktop-header/DesktopHeader";
 import { Nav } from "@openedx/paragon";
 
 import CobaltHeaderBase from "./CobaltHeaderBase";
+import HeaderNotificationsSlot from "./HeaderNotifications";
 import messages from "./messages";
 
 // Cobalt header for org.openedx.frontend.layout.header_desktop.v1: the shared
-// chrome with the main menu in the middle.
-const CobaltDesktopHeader = (props) => {
+// chrome with the main menu in the middle. It wraps the slot's default content
+// (PLUGIN_OPERATIONS.Wrap): `component` is the Open edX desktop header element
+// with the props the host MFE gave it.
+const CobaltDesktopHeader = ({ component }) => {
+  const props = component?.props || {};
   const { formatMessage } = useIntl();
   const cfg = getConfig();
 
@@ -22,11 +22,11 @@ const CobaltDesktopHeader = (props) => {
   // the slot (props.mainMenu) is MFE-specific and uses another item shape.
   const mainLinks = cfg.COBALT_HEADER_MAIN_MENU || [];
 
-  // Runtime kill-switch: when ENABLE_COBALT_HEADER is falsy, fall back to
-  // the default Open edX desktop header with the props the slot received.
-  // Placed after all hooks so the rules of hooks are respected.
+  // Runtime kill-switch: when ENABLE_COBALT_HEADER is falsy, render the
+  // default Open edX desktop header untouched. Placed after all hooks so the
+  // rules of hooks are respected.
   if (!cfg?.ENABLE_COBALT_HEADER) {
-    return <DefaultDesktopHeader {...props} />;
+    return component;
   }
 
   const handleLinkClick = (event) => {
@@ -42,6 +42,7 @@ const CobaltDesktopHeader = (props) => {
       logoAltText={props.logoAltText}
       logoDestination={props.logoDestination}
       avatar={props.avatar}
+      actions={HeaderNotificationsSlot && <HeaderNotificationsSlot />}
     >
       {mainLinks.length > 0 && (
         <Nav
