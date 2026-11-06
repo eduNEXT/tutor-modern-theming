@@ -1,4 +1,4 @@
-import { defineMessages } from '@edx/frontend-platform/i18n';
+import { defineMessages } from '../cobalt-platform';
 
 const messages = defineMessages({
   logoAlt: {

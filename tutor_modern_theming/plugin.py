@@ -102,6 +102,21 @@ hooks.Filters.CONFIG_DEFAULTS.add_items(
 
 MODERN_THEMING_REPO = "https://github.com/eduNEXT/tutor-modern-theming.git"
 
+
+def _platform_copy(tmp_dir: str) -> str:
+    """Dockerfile step that copies the frontend-platform layer of the Cobalt
+    components (frontend/cobalt-platform/index.js) into a legacy MFE.
+
+    Every component imports it from ../cobalt-platform. Copying the single file
+    is idempotent, so the footer and header patches of the same MFE can both
+    run it.
+    """
+    return (
+        "RUN mkdir -p src/cobalt-platform && cp "
+        + tmp_dir
+        + "/frontend/cobalt-platform/index.js src/cobalt-platform/index.js"
+    )
+
 # MFEs whose compiled bundle exposes org.openedx.frontend.layout.footer.v1.
 # authoring/Studio uses a different slot (studio_footer.v1) and is left to a
 # follow-up.
@@ -148,7 +163,8 @@ for mfe in COBALT_FOOTER_MFES:
             + MODERN_THEMING_REPO
             + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming\n"
             + "RUN cp -r /tmp/tutor-modern-theming/frontend/cobalt-footer "
-            + "src/cobalt-footer",
+            + "src/cobalt-footer\n"
+            + _platform_copy("/tmp/tutor-modern-theming"),
         )
     )
     # 2. Definition: bring CobaltFooter into env.config.jsx scope for this MFE.
@@ -342,7 +358,8 @@ for mfe in COBALT_HEADER_MFES:
             + MODERN_THEMING_REPO
             + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-header\n"
             + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/cobalt-header "
-            + "src/cobalt-header",
+            + "src/cobalt-header\n"
+            + _platform_copy("/tmp/tutor-modern-theming-header"),
         )
     )
     # 2. Definition: bring CobaltDesktopHeader into env.config.jsx scope.
@@ -385,7 +402,8 @@ hooks.Filters.ENV_PATCHES.add_items(
             + MODERN_THEMING_REPO
             + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-header\n"
             + "RUN cp -r /tmp/tutor-modern-theming-header/frontend/cobalt-header "
-            + "src/cobalt-header",
+            + "src/cobalt-header\n"
+            + _platform_copy("/tmp/tutor-modern-theming-header"),
         ),
         (
             f"mfe-env-config-runtime-definitions-{HEADER_LEARNING_MFE}",
@@ -445,3 +463,4 @@ hooks.Filters.ENV_PATCHES.add_item(
         + "    done",
     )
 )
+

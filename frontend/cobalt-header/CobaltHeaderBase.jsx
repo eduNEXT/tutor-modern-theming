@@ -1,12 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import PropTypes from "prop-types";
-import { getConfig } from "@edx/frontend-platform";
-import { getLoginRedirectUrl } from "@edx/frontend-platform/auth";
-import { useIntl } from "@edx/frontend-platform/i18n";
-import { AppContext } from "@edx/frontend-platform/react";
-import { sendTrackEvent } from "@edx/frontend-platform/analytics";
 import { Dropdown, Avatar, Button, Hyperlink } from "@openedx/paragon";
 
+import {
+  getCobaltConfig,
+  getLoginRedirectUrl,
+  sendTrackEvent,
+  useAuthenticatedUser,
+  useIntl,
+} from "../cobalt-platform";
 import messages from "./messages";
 import "./CobaltHeader.scss";
 
@@ -66,8 +68,8 @@ const CobaltHeaderBase = ({
   actions,
 }) => {
   const { formatMessage } = useIntl();
-  const { authenticatedUser } = useContext(AppContext);
-  const cfg = getConfig();
+  const authenticatedUser = useAuthenticatedUser();
+  const cfg = getCobaltConfig();
 
   const loggedIn = !!authenticatedUser;
   const username = authenticatedUser?.username;
