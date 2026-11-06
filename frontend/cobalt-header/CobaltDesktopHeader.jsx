@@ -1,9 +1,7 @@
 import React from "react";
-import { getConfig } from "@edx/frontend-platform";
-import { useIntl } from "@edx/frontend-platform/i18n";
-import { sendTrackEvent } from "@edx/frontend-platform/analytics";
 import { Nav } from "@openedx/paragon";
 
+import { getCobaltConfig, sendTrackEvent, useIntl } from "../cobalt-platform";
 import CobaltHeaderBase from "./CobaltHeaderBase";
 import HeaderNotificationsSlot from "./HeaderNotifications";
 import messages from "./messages";
@@ -15,7 +13,7 @@ import messages from "./messages";
 const CobaltDesktopHeader = ({ component }) => {
   const props = component?.props || {};
   const { formatMessage } = useIntl();
-  const cfg = getConfig();
+  const cfg = getCobaltConfig();
 
   // Main menu: only MFE_CONFIG.COBALT_HEADER_MAIN_MENU, so the legacy (Mako)
   // header can render exactly the same links. The menu the host MFE passes to

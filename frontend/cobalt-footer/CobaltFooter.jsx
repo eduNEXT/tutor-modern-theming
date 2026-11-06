@@ -1,8 +1,4 @@
-import React, { useContext, useMemo } from 'react';
-import { useIntl } from '@edx/frontend-platform/i18n';
-import { AppContext } from '@edx/frontend-platform/react';
-import { getConfig } from '@edx/frontend-platform';
-import { sendTrackEvent } from '@edx/frontend-platform/analytics';
+import React, { useMemo } from 'react';
 import DefaultFooter from '@edx/frontend-component-footer';
 import {
   Hyperlink,
@@ -18,6 +14,7 @@ import {
   BsGithub,
 } from '@openedx/paragon/icons';
 
+import { getCobaltConfig, sendTrackEvent, useIntl } from '../cobalt-platform';
 import messages from './messages';
 import './CobaltFooter.scss';
 
@@ -41,15 +38,14 @@ const DEFAULT_SOCIAL_LINKS = [
 
 const CobaltFooter = () => {
   const { formatMessage } = useIntl();
-  const { config } = useContext(AppContext);
-  const cfg = getConfig();
+  const cfg = getCobaltConfig();
 
-  // Read all configurable values from MFE_CONFIG via getConfig().
+  // Read all configurable values from MFE_CONFIG.
   // Hooks must run unconditionally, so this is computed before the
   // feature-flag early return below.
   const footerConfig = useMemo(() => ({
-    logoSrc: cfg.COBALT_FOOTER_LOGO_SRC || config.LOGO_TRADEMARK_URL,
-    logoUrl: cfg.COBALT_FOOTER_LOGO_URL || config.LMS_BASE_URL,
+    logoSrc: cfg.COBALT_FOOTER_LOGO_SRC || cfg.LOGO_TRADEMARK_URL,
+    logoUrl: cfg.COBALT_FOOTER_LOGO_URL || cfg.LMS_BASE_URL,
     logoAlt: cfg.COBALT_FOOTER_LOGO_ALT || formatMessage(messages.logoAlt),
     logoTarget: cfg.COBALT_FOOTER_LOGO_TARGET || '_self',
 
@@ -60,25 +56,25 @@ const CobaltFooter = () => {
       {
         title: formatMessage(messages.aboutTitle),
         links: [
-          { txt: formatMessage(messages.aboutUs), url: `${config.LMS_BASE_URL}/about` },
-          { txt: formatMessage(messages.blog), url: `${config.LMS_BASE_URL}/blog` },
-          { txt: formatMessage(messages.careers), url: `${config.LMS_BASE_URL}/careers` },
-          { txt: formatMessage(messages.news), url: `${config.LMS_BASE_URL}/news` },
+          { txt: formatMessage(messages.aboutUs), url: `${cfg.LMS_BASE_URL}/about` },
+          { txt: formatMessage(messages.blog), url: `${cfg.LMS_BASE_URL}/blog` },
+          { txt: formatMessage(messages.careers), url: `${cfg.LMS_BASE_URL}/careers` },
+          { txt: formatMessage(messages.news), url: `${cfg.LMS_BASE_URL}/news` },
         ],
       },
       {
         title: formatMessage(messages.legalTitle),
         links: [
-          { txt: formatMessage(messages.termsOfService), url: `${config.LMS_BASE_URL}/tos` },
-          { txt: formatMessage(messages.privacyPolicy), url: `${config.LMS_BASE_URL}/privacy` },
-          { txt: formatMessage(messages.accessibility), url: `${config.LMS_BASE_URL}/accessibility` },
+          { txt: formatMessage(messages.termsOfService), url: `${cfg.LMS_BASE_URL}/tos` },
+          { txt: formatMessage(messages.privacyPolicy), url: `${cfg.LMS_BASE_URL}/privacy` },
+          { txt: formatMessage(messages.accessibility), url: `${cfg.LMS_BASE_URL}/accessibility` },
         ],
       },
       {
         title: formatMessage(messages.connectTitle),
         links: [
-          { txt: formatMessage(messages.contact), url: `${config.LMS_BASE_URL}/contact` },
-          { txt: formatMessage(messages.help), url: `${config.LMS_BASE_URL}/support` },
+          { txt: formatMessage(messages.contact), url: `${cfg.LMS_BASE_URL}/contact` },
+          { txt: formatMessage(messages.help), url: `${cfg.LMS_BASE_URL}/support` },
         ],
       },
     ],
@@ -100,7 +96,7 @@ const CobaltFooter = () => {
     edunextLogoSrc: cfg.COBALT_FOOTER_EDUNEXT_LOGO_SRC || 'https://d1uwn6yupg8lfo.cloudfront.net/edxsites/bragi-images/logo-small21.png',
     edunextLogoUrl: cfg.COBALT_FOOTER_EDUNEXT_LOGO_URL || 'https://www.edunext.co',
     edunextLogoAlt: cfg.COBALT_FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
-  }), [config, cfg, formatMessage]);
+  }), [cfg, formatMessage]);
 
   // Runtime kill-switch: when ENABLE_COBALT_FOOTER is falsy, fall back to
   // the default Open edX footer. Placed after all hooks so the rules of

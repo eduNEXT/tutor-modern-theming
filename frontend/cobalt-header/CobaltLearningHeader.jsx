@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { getConfig } from "@edx/frontend-platform";
 import { LearningHeader as DefaultLearningHeader } from "@edx/frontend-component-header";
 // The learning header's inner slots are not re-exported by the package index,
 // so they are imported from dist (present in 6.x and 8.x). Rendering them
@@ -9,6 +8,7 @@ import { LearningHeader as DefaultLearningHeader } from "@edx/frontend-component
 import CourseInfoSlot from "@edx/frontend-component-header/dist/plugin-slots/CourseInfoSlot";
 import LearningHelpSlot from "@edx/frontend-component-header/dist/plugin-slots/LearningHelpSlot";
 
+import { getCobaltConfig } from "../cobalt-platform";
 import CobaltHeaderBase from "./CobaltHeaderBase";
 import HeaderNotificationsSlot from "./HeaderNotifications";
 
@@ -19,7 +19,7 @@ import HeaderNotificationsSlot from "./HeaderNotifications";
 // #main-content skip target and the showUserDropdown prop.
 const CobaltLearningHeader = (props) => {
   const { courseOrg, courseNumber, courseTitle, showUserDropdown } = props;
-  const cfg = getConfig();
+  const cfg = getCobaltConfig();
 
   // Runtime kill-switch, same as CobaltDesktopHeader.
   if (!cfg?.ENABLE_COBALT_HEADER) {
