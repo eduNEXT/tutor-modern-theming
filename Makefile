@@ -21,7 +21,17 @@ format: ## Format code automatically
 isort: ##  Sort imports. This target is not mandatory because the output may be incompatible with black formatting. Provided for convenience purposes.
 	isort --skip=templates ${SRC_DIRS}
 
-ESCAPE = 
+dev-site-sync: ## Copy the Cobalt frontend-base app into SITE/src/cobalt and keep it in sync (SITE=<frontend-base app or site checkout>)
+	@test -n "$(SITE)" || { echo "usage: make dev-site-sync SITE=<path>"; exit 1; }
+	@echo "Syncing frontend/ -> $(SITE)/src/cobalt (Ctrl+C to stop)"
+	@while true; do \
+		rm -rf "$(SITE)/.cobalt-sync"; \
+		sh frontend/install-site.sh "$(SITE)/.cobalt-sync"; \
+		rsync -a --delete --checksum "$(SITE)/.cobalt-sync/" "$(SITE)/src/cobalt/"; \
+		sleep 1; \
+	done
+
+ESCAPE =
 help: ## Print this help
 	@grep -E '^([a-zA-Z_-]+:.*?## .*|######* .+)$$' Makefile \
 		| sed 's/######* \(.*\)/@               $(ESCAPE)[1;31m\1$(ESCAPE)[0m/g' | tr '@' '\n' \

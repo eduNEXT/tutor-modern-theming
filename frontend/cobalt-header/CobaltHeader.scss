@@ -5,6 +5,16 @@
   background-color: var(--pgn-color-white);
   border-bottom: 1px solid var(--pgn-color-light-400);
 
+  // frontend-base site: the shell wraps the slot in <header class="border-bottom">,
+  // whose !important utility comes from an earlier cascade layer and cannot be
+  // overridden. Draw our line as a 1px shadow over the shell's border instead of a
+  // second border, so there is one line, in the Cobalt color, and the same height
+  // as the MFEs and legacy.
+  &.chd-in-shell {
+    border-bottom: 0;
+    box-shadow: 0 1px 0 var(--pgn-color-light-400);
+  }
+
   .chd-container {
     max-width: 1400px;
     margin: 0 auto;

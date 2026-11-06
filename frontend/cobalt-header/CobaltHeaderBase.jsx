@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Dropdown, Avatar, Button, Hyperlink } from "@openedx/paragon";
 
 import {
+  HEADER_IN_SHELL,
   getCobaltConfig,
   getLoginRedirectUrl,
   sendTrackEvent,
@@ -158,11 +159,21 @@ const CobaltHeaderBase = ({
     );
   };
 
+  // On the frontend-base site the shell provides the <header> landmark and the
+  // skip link, so the same markup goes in a plain div there.
+  const Root = HEADER_IN_SHELL ? "div" : "header";
+
   return (
-    <header className="cobalt-header">
-      <a className="sr-only sr-only-focusable" href={skipTo}>
-        {formatMessage(messages.skipNav)}
-      </a>
+    <Root
+      className={
+        HEADER_IN_SHELL ? "cobalt-header chd-in-shell" : "cobalt-header"
+      }
+    >
+      {!HEADER_IN_SHELL && (
+        <a className="sr-only sr-only-focusable" href={skipTo}>
+          {formatMessage(messages.skipNav)}
+        </a>
+      )}
       <div className="chd-container d-flex align-items-center">
         <a
           href={logoHref}
@@ -183,7 +194,7 @@ const CobaltHeaderBase = ({
           </div>
         )}
       </div>
-    </header>
+    </Root>
   );
 };
 

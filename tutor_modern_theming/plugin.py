@@ -464,3 +464,44 @@ hooks.Filters.ENV_PATCHES.add_item(
     )
 )
 
+########################################
+# FRONTEND-BASE SITE (Verawood+)
+########################################
+
+# tutor-mfe 22 builds one frontend-base "site" (shell + apps such as
+# instructor-dashboard) besides the legacy MFEs. The site does not read FPF
+# slots, so Cobalt ships there as its own frontend-base app (frontend/cobalt-app)
+# that REPLACEs the shell's desktop header and footer layouts.
+#
+# These patches have no consumer, and so change nothing, where there is no site:
+# tutor-mfe 21 (Ulmo) has no site build, and tutor-mfe 22 only builds it when
+# some frontend-base app is enabled.
+#
+# 1. Delivery: same idea as the legacy MFEs. install-site.sh copies the app,
+#    the site-compatible components and the frontend-base platform layer into
+#    the site source tree. Only the production build ("site-prod" stage) runs
+#    this patch, so the app is registered with the *-production config patches
+#    below: the dev site (tutor dev) has no src/cobalt.
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            "mfe-dockerfile-pre-npm-build-site",
+            "ADD --keep-git-dir=true "
+            + MODERN_THEMING_REPO
+            + "#{{ MODERN_THEMING_GIT_REF }} /tmp/tutor-modern-theming-site\n"
+            + "RUN sh /tmp/tutor-modern-theming-site/frontend/install-site.sh "
+            + "src/cobalt",
+        ),
+        # 2. Wiring: register the app in site.config.build.tsx. headerApp and
+        #    footerApp come first in siteConfig.apps, so the widgets our
+        #    REPLACE operations target already exist.
+        (
+            "mfe-site-config-imports-production",
+            "import { cobaltApp } from './src/cobalt/cobalt-app';",
+        ),
+        (
+            "mfe-site-config-production",
+            "addApp(siteConfig, cobaltApp);",
+        ),
+    ]
+)
