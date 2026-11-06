@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import DefaultFooter from '@edx/frontend-component-footer';
 import {
   Hyperlink,
   Icon,
@@ -36,13 +35,14 @@ const DEFAULT_SOCIAL_LINKS = [
   { key: 'github', url: 'https://github.com/openedx', label: 'GitHub' },
 ];
 
-const CobaltFooter = () => {
+// Cobalt footer. Platform-agnostic, with no kill-switch: CobaltFooter wraps it
+// for the legacy MFEs (fallback to the Open edX footer) and the frontend-base
+// app renders it from a slot operation whose condition is ENABLE_COBALT_FOOTER.
+const CobaltFooterContent = () => {
   const { formatMessage } = useIntl();
   const cfg = getCobaltConfig();
 
   // Read all configurable values from MFE_CONFIG.
-  // Hooks must run unconditionally, so this is computed before the
-  // feature-flag early return below.
   const footerConfig = useMemo(() => ({
     logoSrc: cfg.COBALT_FOOTER_LOGO_SRC || cfg.LOGO_TRADEMARK_URL,
     logoUrl: cfg.COBALT_FOOTER_LOGO_URL || cfg.LMS_BASE_URL,
@@ -97,13 +97,6 @@ const CobaltFooter = () => {
     edunextLogoUrl: cfg.COBALT_FOOTER_EDUNEXT_LOGO_URL || 'https://www.edunext.co',
     edunextLogoAlt: cfg.COBALT_FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
   }), [cfg, formatMessage]);
-
-  // Runtime kill-switch: when ENABLE_COBALT_FOOTER is falsy, fall back to
-  // the default Open edX footer. Placed after all hooks so the rules of
-  // hooks are respected.
-  if (!cfg?.ENABLE_COBALT_FOOTER) {
-    return <DefaultFooter />;
-  }
 
   const handleLinkClick = (event) => {
     sendTrackEvent('edx.bi.footer.link', {
@@ -256,4 +249,4 @@ const CobaltFooter = () => {
   );
 };
 
-export default CobaltFooter;
+export default CobaltFooterContent;
