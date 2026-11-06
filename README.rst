@@ -11,7 +11,9 @@ Overview
 
 ``tutor-modern-theming`` is a Tutor plugin by eduNEXT that brings modern,
 token-based theming to Open edX Micro-Frontends (MFEs) through the Frontend
-Plugin Framework (plugin slots).
+Plugin Framework (plugin slots), to the frontend-base site through a
+frontend-base app (see `frontend-base site`_), and to legacy Django pages
+through Mako templates.
 
 The theme this plugin delivers is called **Cobalt**. The plugin keeps its own
 name (``tutor-modern-theming``, settings ``MODERN_THEMING_*``); everything that
@@ -23,6 +25,12 @@ belongs to the theme uses the ``COBALT`` namespace:
   ``frontend/cobalt-header/`` (``CobaltDesktopHeader``,
   ``CobaltLearningHeader``) and
   ``frontend/cobalt-home-banner/`` (``CobaltHomeBanner``).
+- ``frontend/cobalt-app/``: the frontend-base app (``cobaltApp``) that puts the
+  same header and footer on the frontend-base site.
+- ``frontend/cobalt-platform/``: the only place that imports platform APIs
+  (config, user, analytics, i18n). ``index.js`` wraps frontend-platform for the
+  MFEs and ``frontend-base.js`` wraps ``@openedx/frontend-base`` for the site;
+  the components are the same on both.
 - CSS classes, i18n message ids (``cobalt.*``) and plugin slot widget ids
   (``cobalt_*``).
 
@@ -36,6 +44,12 @@ Supported and tested with:
 
 - Tutor 21 (Ulmo)
 - Tutor 22 (Verawood)
+
+The same release serves both. The frontend-base support only takes effect where
+tutor-mfe builds a frontend-base site, i.e. Tutor 22 with at least one
+frontend-base app enabled. On Tutor 21, or on Tutor 22 with every frontend-base
+app off, its patches have no consumer and the images are built exactly as
+before.
 
 Using it together with tutor-indigo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -340,7 +354,8 @@ user menu, Sign in / Register):
   place of the main menu, and ``showUserDropdown``.
 
 Not covered yet (see `Roadmap`_): the Studio header (``authoring``) and the
-mobile header (``header_mobile.v1``).
+mobile header (``header_mobile.v1``). The frontend-base site gets the desktop
+header from ``cobaltApp`` instead (see `frontend-base site`_).
 
 The header reuses the session data from ``AppContext`` (login state, avatar,
 username) instead of rebuilding it and keeps the base logged-in / logged-out
@@ -456,6 +471,112 @@ The same warning applies: themes mounted at runtime hide the build-time change,
 and structure changes must be kept in sync across ``frontend/cobalt-header/``
 and ``legacy/header/header.html``.
 
+frontend-base site
+------------------
+
+From Verawood, tutor-mfe builds a single frontend-base **site** besides the
+legacy MFEs. Every frontend-base app enabled in tutor-mfe (``instructor-dashboard``
+in Verawood; ``authn``, ``learner-dashboard``, ``catalog`` and others from Willow)
+runs inside that site, and the header and footer belong to the site's shell, not
+to each app. FPF slots do not exist there, so Cobalt ships as its own
+frontend-base app, ``cobaltApp`` (``frontend/cobalt-app/``), registered in the
+site with ``addApp``.
+
+``cobaltApp`` REPLACEs two shell widgets with the same components the MFEs use:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Part
+     - Shell slot / widget replaced
+     - Flag
+   * - Desktop header
+     - ``org.openedx.frontend.slot.header.desktop.v1`` /
+       ``org.openedx.frontend.widget.header.desktopLayout.v1``
+     - ``ENABLE_COBALT_HEADER``
+   * - Footer
+     - ``org.openedx.frontend.slot.footer.desktop.v1`` /
+       ``org.openedx.frontend.widget.footer.desktopLayout.v1``
+     - ``ENABLE_COBALT_FOOTER``
+
+Because the shell is shared, this covers **every app in the site**: an app that
+tutor-mfe adds later gets the Cobalt header and footer with no change to this
+plugin. It is the opposite of the MFEs, where each one is listed in
+``plugin.py``.
+
+Behavior:
+
+- **Flag off**: each operation has a ``condition.callback`` on its flag, read on
+  every render. frontend-base drops an operation whose condition is not met
+  before applying any, so the shell's own header or footer renders. Nothing from
+  Open edX is imported as a fallback.
+- **Mobile** (below 768px, the shell's breakpoint): the Cobalt header hides
+  itself and the shell's mobile header shows, as in the MFEs, where Cobalt only
+  fills ``header_desktop.v1``.
+- **Chromeless routes** (e.g. login): apps that ask the shell for no header and
+  footer get none, Cobalt included.
+- **Landmarks**: the shell already wraps the header in ``<header><nav>`` with a
+  skip link, so on the site the Cobalt header renders a ``div`` and no skip link.
+- **Widgets from other apps**: replacing the desktop layout also replaces the
+  ``header.desktopLeft.v1`` and ``header.desktopRight.v1`` slots, where other
+  apps add widgets (e.g. the bell of the notifications app). The Cobalt header
+  renders both slots without the shell's own widgets, so those widgets still
+  show, in the same order, next to the Cobalt menu and before Help.
+
+Site configuration
+^^^^^^^^^^^^^^^^^^
+
+Same keys and fallbacks as the MFE header and footer (see `Configuration`_ and
+`Header configuration and fallbacks`_). The site reads them from
+``/api/frontend_site_config/v1/``, which turns the ``MFE_CONFIG`` of the
+current tenant into the site config:
+
+- ``ENABLE_COBALT_*``, ``COBALT_*``, ``SUPPORT_URL`` and the other keys it does
+  not know end up in ``commonAppConfig``, which ``getAppConfig()`` merges into
+  ``cobaltApp``'s config. Per tenant, as in the MFEs.
+- ``LMS_BASE_URL``, ``STUDIO_BASE_URL``, ``LOGIN_URL``, ``LOGOUT_URL``,
+  ``LOGO_URL``, ``SITE_NAME`` and ``BASE_URL`` move to the site config
+  (``lmsBaseUrl``, ``headerLogoImageUrl``, ...). ``cobalt-platform/frontend-base.js``
+  maps them back to the MFE names, so the components read the same keys.
+
+Build
+^^^^^
+
+Nothing to configure: the same ``tutor images build mfe`` builds it.
+
+- ``mfe-dockerfile-pre-npm-build-site`` fetches this repo at
+  ``MODERN_THEMING_GIT_REF`` and runs ``frontend/install-site.sh src/cobalt``,
+  which copies the app, the components the site can use and the frontend-base
+  platform layer. The MFE-only wrappers (``CobaltFooter.jsx``,
+  ``CobaltDesktopHeader.jsx``, ``CobaltLearningHeader.jsx``) are not copied:
+  they import ``frontend-component-header``/``-footer``, which the site does not
+  have.
+- ``mfe-site-config-imports-production`` and ``mfe-site-config-production``
+  register the app in ``site.config.build.tsx``. Only the production patches
+  are used: the dev site (``tutor dev``) does not run the Dockerfile patch, so
+  it has no ``src/cobalt``.
+
+Local development
+^^^^^^^^^^^^^^^^^
+
+To work on the app against a frontend-base checkout (an app repo such as
+``frontend-app-instructor-dashboard``, or a site):
+
+.. code-block:: bash
+
+    make dev-site-sync SITE=<path to the checkout>
+
+It copies the same files as the build into ``<checkout>/src/cobalt`` with
+``install-site.sh`` and keeps them in sync. Then, in the checkout's
+``site.config.dev.tsx``, import ``cobaltApp`` from ``./src/cobalt/cobalt-app``,
+add it to ``apps`` and set ``runtimeConfigJsonUrl`` to the LMS
+``/api/frontend_site_config/v1/`` so the ``COBALT_*`` keys arrive. Keep
+``src/cobalt/`` and ``.cobalt-sync/`` out of git (``.git/info/exclude``).
+
+Not covered yet: the mobile header and the catalog home banner (see
+`Roadmap`_).
+
 Upgrading from the eduNEXT-named keys
 -------------------------------------
 
@@ -491,8 +612,10 @@ Roadmap
 -------
 
 - Studio header (``authoring``, ``StudioHeader``) for Ulmo and Verawood.
-- ``instructor-dashboard``, built on frontend-base.
-- Mobile header (``header_mobile.v1``).
+- Mobile header: ``header_mobile.v1`` in the MFEs and the shell's mobile layout
+  on the frontend-base site.
+- Catalog home banner on the frontend-base site (catalog moves to frontend-base
+  in Willow), without depending on catalog internals.
 
 Contributing
 ------------

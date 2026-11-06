@@ -5,13 +5,20 @@ import { defineMessages, useIntl } from "@edx/frontend-platform/i18n";
 import { AppContext } from "@edx/frontend-platform/react";
 import { sendTrackEvent } from "@edx/frontend-platform/analytics";
 
-// Platform layer of the Cobalt components. They import everything
-// platform-specific (config, user, analytics, i18n) from here instead of from
-// frontend-platform directly, so the same JSX can run on another platform by
-// swapping this one file.
+// Platform layer for the legacy MFEs (frontend-platform). The Cobalt
+// components import everything platform-specific from here, so the same JSX
+// runs on the frontend-base site, where the build replaces this file with
+// ./frontend-base.js. Both files must export the same names.
 
 // MFE_CONFIG as the MFE sees it (getConfig() merges the runtime config).
 export const getCobaltConfig = () => getConfig();
+
+// The MFE has no header landmark around the slot: Cobalt renders its own
+// <header> and skip link.
+export const HEADER_IN_SHELL = false;
+
+// The MFE header slots have no widgets from other apps to keep.
+export const HeaderExtensions = () => null;
 
 export const useAuthenticatedUser = () =>
   useContext(AppContext).authenticatedUser;
