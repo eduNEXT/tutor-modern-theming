@@ -102,10 +102,33 @@ const CobaltFooter = () => {
     edunextLogoAlt: cfg.COBALT_FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
   }), [config, cfg, formatMessage]);
 
-  // Runtime kill-switch: when ENABLE_COBALT_FOOTER is falsy, fall back to
-  // the default Open edX footer. Placed after all hooks so the rules of
-  // hooks are respected.
   if (!cfg?.ENABLE_COBALT_FOOTER) {
+    const footerOverride = cfg?.COBALT_FOOTER_OVERRIDE;
+
+    if (typeof footerOverride === 'string' && footerOverride.trim()) {
+      // Preserve link tracking for anchors inside the injected HTML.
+      const handleOverrideClick = (event) => {
+        const anchor = event.target.closest?.('a[href]');
+        if (anchor) {
+          sendTrackEvent('edx.bi.footer.link', {
+            category: 'outbound_link',
+            label: anchor.getAttribute('href'),
+          });
+        }
+      };
+
+      return (
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+        <footer
+          role="contentinfo"
+          className="custom-footer footer-override"
+          onClick={handleOverrideClick}
+          // HTML comes from admin-controlled MFE config, not user input.
+          dangerouslySetInnerHTML={{ __html: footerOverride }}
+        />
+      );
+    }
+
     return <DefaultFooter />;
   }
 
