@@ -379,5 +379,5 @@ else:
 ## Delegate to the header this template replaced at build time. The theme
 ## lookup resolves it like header/header.html would have been resolved
 ## without this plugin: the active theme's own header, its parent's, or core's.
-<%include file="${static.get_template_path('header/header-original.html')}" args="online_help_token=online_help_token, use_cookie_banner=use_cookie_banner" />
+<%include file="${static.get_template_path('header-original.html')}" args="online_help_token=online_help_token, use_cookie_banner=use_cookie_banner" />
 % endif
