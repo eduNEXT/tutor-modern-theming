@@ -105,8 +105,9 @@ Configuration
 
 The footer reads everything from ``MFE_CONFIG`` via ``getConfig()``. Set the keys
 through Tutor settings or per tenant (eox-tenant). The Cobalt footer only
-renders when ``ENABLE_COBALT_FOOTER`` is ``true``; every other key is optional,
-and when it is missing or empty the footer uses the fallback below. The list
+renders when ``ENABLE_COBALT_FOOTER`` is ``true`` and ``footer_override`` is not
+set (see `Custom HTML footer`_); every other key is optional, and when it is
+missing or empty the footer uses the fallback below. The list
 keys (``COBALT_FOOTER_NAV_COLUMNS``, ``COBALT_FOOTER_SOCIAL_LINKS``) fall back
 only when missing: an empty list (``[]``) shows no columns or no social icons,
 in both the MFE and the legacy footer.
@@ -117,8 +118,14 @@ in both the MFE and the legacy footer.
 
    * - Key
      - If not set
+   * - ``footer_override``
+     - The footer is not replaced: the Cobalt footer or the default Open edX
+       footer is shown, as set by ``ENABLE_COBALT_FOOTER``. When set to a
+       non-empty string, that HTML replaces the whole footer, regardless of
+       ``ENABLE_COBALT_FOOTER`` (see `Custom HTML footer`_).
    * - ``ENABLE_COBALT_FOOTER``
-     - The default Open edX footer is shown instead of the Cobalt footer.
+     - The default Open edX footer is shown instead of the Cobalt footer
+       (unless ``footer_override`` is set).
    * - ``COBALT_FOOTER_LOGO_SRC``
      - ``LOGO_TRADEMARK_URL`` (the platform logo).
    * - ``COBALT_FOOTER_LOGO_URL``
@@ -193,6 +200,60 @@ the tenant configuration):
 Colors come from Paragon design tokens (``--pgn-color-*``), so per-tenant
 varsify variants restyle the footer without touching this plugin.
 
+Custom HTML footer
+^^^^^^^^^^^^^^^^^^
+
+``footer_override`` lets a tenant replace the whole footer with its own HTML.
+It is the same key that bragi's ``footer.html`` uses on legacy pages, and the one
+customers already configure in the Control Center (Look & Feel → Footer,
+"custom HTML"), so MFEs and legacy pages share one mechanism. The behavior is
+the same in the MFEs and in the legacy footer:
+
+- If ``footer_override`` is a non-empty string, it replaces the whole footer,
+  as in bragi, regardless of ``ENABLE_COBALT_FOOTER``.
+- Otherwise nothing changes: the Cobalt footer when ``ENABLE_COBALT_FOOTER`` is
+  ``true``, and the default Open edX footer (MFEs) or ``footer-original.html``
+  (legacy) when it is off. The ``ENABLE_COBALT_FOOTER`` kill switch keeps its
+  meaning.
+
+Where to set it:
+
+- **MFEs** only see ``MFE_CONFIG``, so the value must be there:
+  ``MFE_CONFIG.footer_override``, next to the other keys (Tutor settings or the
+  tenant configuration). The Control Center value (``custom_override_html``)
+  reaches ``MFE_CONFIG`` through the xman mfe profile mapping; until that
+  mapping exists, set ``MFE_CONFIG.footer_override`` by hand.
+- **Legacy pages** read the tenant's root ``footer_override`` key through the
+  theming options, the same way bragi does.
+
+.. code-block:: json
+
+   {
+     "footer_override": "<div style=\"padding: 24px\"><a href=\"https://example.com\">Example</a></div>"
+   }
+
+Differences between the MFEs and the legacy pages:
+
+- The MFEs do not load the LMS CSS, so classes and icon fonts that rely on it
+  (for example Font Awesome ``fa fa-*`` icons copied from legacy markup) do not
+  render in the MFEs. Use inline styles, inline SVG, or a stylesheet ``<link>``
+  inside the HTML.
+- ``<script>`` tags do not run in the MFEs (the HTML is injected with
+  ``dangerouslySetInnerHTML``), while they do in the legacy Mako footer.
+  Iframe embeds work in both.
+- The MFE footer is wrapped in ``<footer role="contentinfo" class="footer-override">``.
+  It does not use the Cobalt footer classes, so the Cobalt background and text
+  colors do not apply to the custom HTML. Link clicks inside it still send the
+  ``edx.bi.footer.link`` tracking event.
+
+.. warning::
+
+   ``footer_override`` is customer-editable HTML (it is saved from the Control
+   Center). It is rendered as is, with no sanitization, the same trust model as
+   the legacy footer (``| n`` in bragi). Sanitizing would also break the iframe
+   embeds that customers use. Only give footer editing to people you trust with
+   scripts on the legacy pages and arbitrary markup in the MFEs.
+
 Legacy (Django/Mako) footer
 ---------------------------
 
@@ -207,8 +268,10 @@ side) by **delegation**: every ``lms/templates/footer.html`` in the image — co
 and every theme under ``/openedx/themes`` (e.g. ``bragi``) — is renamed to
 ``footer-original.html`` in place, and the Cobalt footer takes its name.
 
-``ENABLE_COBALT_FOOTER`` is opt-in (same as the MFE footer). When it is off,
-the legacy footer includes ``footer-original.html``, which the theme lookup
+``ENABLE_COBALT_FOOTER`` is opt-in (same as the MFE footer). A non-empty
+``footer_override`` replaces the whole footer regardless of it (see `Custom HTML
+footer`_). When it is off and ``footer_override`` is not set, the legacy footer
+includes ``footer-original.html``, which the theme lookup
 resolves exactly as ``footer.html`` would have been resolved without this
 plugin: the active theme's own footer, its parent's, or Open edX core.
 
@@ -262,7 +325,8 @@ Legacy footer configuration and fallbacks
 
 The legacy footer reads the same ``MFE_CONFIG`` keys as the MFE footer, resolved
 the same way as ``/api/mfe_config/v1``: tenant configuration first, Django
-settings second. It only renders when ``ENABLE_COBALT_FOOTER`` is ``true``.
+settings second. It only renders when ``ENABLE_COBALT_FOOTER`` is ``true`` and
+``footer_override`` is not set.
 
 Every other ``COBALT_FOOTER_*`` key has the same fallback as in the MFE footer (see
 `Configuration`_). The differences are:
@@ -273,9 +337,15 @@ Every other ``COBALT_FOOTER_*`` key has the same fallback as in the MFE footer (
 
    * - Key
      - If not set
+   * - ``footer_override`` (tenant root key, read like bragi's ``footer.html``)
+     - The footer is not replaced: the Cobalt footer, or the footer the site
+       would show without this plugin when ``ENABLE_COBALT_FOOTER`` is off.
+       When set to a non-empty string, that HTML replaces the whole footer,
+       regardless of ``ENABLE_COBALT_FOOTER`` (see `Custom HTML footer`_).
    * - ``ENABLE_COBALT_FOOTER``
      - The footer the site would show without this plugin: the active theme's
-       footer (e.g. ``bragi``), its parent theme's, or the Open edX default.
+       footer (e.g. ``bragi``), its parent theme's, or the Open edX default
+       (unless ``footer_override`` is set).
    * - ``LMS_BASE_URL`` (used by the default logo URL and navigation links)
      - Django's ``LMS_ROOT_URL``.
    * - ``LOGO_TRADEMARK_URL`` (default footer logo)

@@ -102,9 +102,37 @@ const CobaltFooter = () => {
     edunextLogoAlt: cfg.COBALT_FOOTER_EDUNEXT_LOGO_ALT || 'eduNEXT',
   }), [config, cfg, formatMessage]);
 
+  // footer_override mirrors bragi's semantics: when it is a non-empty string
+  // it replaces the whole footer, regardless of ENABLE_COBALT_FOOTER.
+  // It is the tenant's custom HTML (Control Center → Look & Feel → Footer),
+  // so it is customer-editable. It is rendered as is, like `| n` in bragi's
+  // footer.html, and deliberately not sanitized so iframe embeds keep working.
+  const footerOverride = cfg?.footer_override;
+  if (typeof footerOverride === 'string' && footerOverride.trim()) {
+    // Preserve link tracking for anchors inside the injected HTML.
+    const handleOverrideClick = (event) => {
+      const anchor = event.target.closest?.('a[href]');
+      if (anchor) {
+        sendTrackEvent('edx.bi.footer.link', {
+          category: 'outbound_link',
+          label: anchor.getAttribute('href'),
+        });
+      }
+    };
+
+    return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+      <footer
+        role="contentinfo"
+        className="footer-override"
+        onClick={handleOverrideClick}
+        dangerouslySetInnerHTML={{ __html: footerOverride }}
+      />
+    );
+  }
+
   // Runtime kill-switch: when ENABLE_COBALT_FOOTER is falsy, fall back to
-  // the default Open edX footer. Placed after all hooks so the rules of
-  // hooks are respected.
+  // the default Open edX footer.
   if (!cfg?.ENABLE_COBALT_FOOTER) {
     return <DefaultFooter />;
   }
